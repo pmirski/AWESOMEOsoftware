@@ -26,7 +26,7 @@ void loop()
   LCD.print(analogRead(40)); //40 = A0
   LCD.setCursor(0,1);
   LCD.print("Sensor2 is: ");
-  LCD.print(analogRead(42)); //42 = A2
+  LCD.print(digitalRead(15)); //pin 15 
  
   delay(100);
 }
