@@ -23,10 +23,12 @@ void loop()
 
   LCD.clear();  LCD.home();
   LCD.print("Sensor1 is: ");
-  LCD.print(analogRead(40)); //40 = A0
+ // LCD.print(analogRead(40)); //40 = A0
+ LCD.print(digitalRead(7));
   LCD.setCursor(0,1);
   LCD.print("Sensor2 is: ");
-  LCD.print(digitalRead(15)); //pin 15 
- 
+//  LCD.print(analogRead(42)); //42 = A2 
+ LCD.print(digitalRead(6));
+  
   delay(100);
 }
