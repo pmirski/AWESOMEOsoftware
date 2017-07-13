@@ -1,7 +1,10 @@
 #include <phys253.h>          
 #include <LiquidCrystal.h>    
 
-//Important concern: Variabe values do not reset during testing, unless you reset them.
+//README: Variabe values do not reset during testing, unless you reset them.
+//Both position values are initially 0
+
+
 
 int inPin = 0;
 
@@ -125,7 +128,7 @@ void loop()
 
     //Call to both functions, in succession
     setTrolleyHorizontalPosition(Postn_Trol_Destntn);
-    setClawBlockVerticalPosition(Postn_ClBlk_Destntn);
+    //setClawBlockVerticalPosition(Postn_ClBlk_Destntn);
 
 }
 
