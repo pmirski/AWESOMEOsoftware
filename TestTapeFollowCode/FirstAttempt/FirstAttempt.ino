@@ -1,22 +1,3 @@
-//Tape Follow Based On Lab5 K and J
-
-    //DRIVING SENSORS: 
-    //  2: front tape trackers (FTT), 
-    //  2: edge trackers (ET), 
-    //  2: on sides-of/adjacent-to 2 front ones (AT)
-//At beginning: follow tape until Right-ET triggered
-//Actuate Wait-For until all four front sensors (Both-FTT + Both-AT) see white.
-//Pivot right (i.e. Drive left wheel, not right) until same line-following as before
-//Actuate Wait-For until Both-FTT sense tape and start driving forward
-//EVERYTHING AFTER IS UNKNOWN: Around circle (2to6), follow tape until both under-tower sensors. Then stop & retrieve UNTIL DONE ALL AGENTS
-
-//MILESTONES:
-//1. tape-follow + making transition onto circle
-//2. do retrieve (+ include a pause if u can)
-
-//Get snapback for ur sensor! :P
-
-
 #include <phys253.h>          
 #include <LiquidCrystal.h> 
 
@@ -41,7 +22,49 @@ int DER_RANGE = 10;
 int GAIN_RANGE = 50;
 int SPEED = 120;
 
+//====================================PAWEL'S NOTES START=================
+//Tape Follow Based On Lab5 K and J
+    //DRIVING SENSORS: 
+    //  2: front tape trackers (FTT), 
+    //  2: edge trackers (ET), 
+    //  2: on sides-of/adjacent-to 2 front ones (AT)
+//At beginning: follow tape until Right-ET triggered
+//Actuate Wait-For until all four front sensors (Both-FTT + Both-AT) see white.
+//Pivot right (i.e. Drive left wheel, not right) until same line-following as before
+//Actuate Wait-For until Both-FTT sense tape and start driving forward
+//EVERYTHING AFTER IS UNKNOWN: Around circle (2to6), follow tape until both under-tower sensors. Then stop & retrieve UNTIL DONE ALL AGENTS
+
+//MILESTONES:
+//1. tape-follow + making transition onto circle
+//2. do retrieve (+ include a pause if u can)
+//  DUN FERGET: JUST ADD PINS AS NEEDED TO TINAH LOG
+
+//Get snapback for ur sensor! :P
+//====================================PAWEL'S NOTES END===================
+
 void loop() {
+//====================================PAWEL'S CODE ADDITION STARTS=================
+//Make this take an input argument as to what state it's in: State_CircleApprch
+
+//Follow tape until Snsr_EdgeTrkr_R senses black tape
+  if(Snsr_EdgeTrkr_R == Black_Tape){                   //WILL HAVE TO CHANGE THIS RE: ROBOT'S AMBIDEXTERITY
+    RobotState_Rgstr = RobotState_EntrgCircle
+  }
+
+//Once Snsr_EdgeTrkr_R has sensed black tape, wait until all four front sensors at front&center "sensor cage" see white. Then
+//Pivot on right wheel (driving on left) until lSensor & rSensor see black again (i.e. are on the circle again).
+//Then exit this while loop and start driving.
+  if(RobotState_Rgstr == RobotState_EntrgCircle && Snsr_Front_FarLeft == Black_Tape && Snsr_Front_FarRight == Black_Tape && lSensor == Black_Tape && rSensor == Black_Tape){
+    while(lSensor == White_Tape && lSensor == White_Tape){
+      motor.speed(0, 0);
+      motor.speed(1, SPEED);
+    }
+  }
+    
+
+
+//====================================PAWEL'S CODE ADDITION ENDS===================
+  
   int lSensor = analogRead(3);
   int rSensor = analogRead(0);
   int proportional = knob(6);

@@ -13,35 +13,42 @@ int Black_Tape = 1; // Used to determine whether trolley and claw block sensors 
 int White_Tape = 0; // CONCERN: White tape = 0? test
 int Mot_Speed_Stop = 0; // Use this to stop motors //Mot_Speed_Stop
 
-//          VARIABLES ONLY FOR FUNCTION setTrolleyHorizontalPosition
-// Important concerns: delay length, initial trolley position, trolley motor speed
-int Postn_Trol_PrvsSnsr = 0;  //Initialization value; MAKE SO CAN CHOOSE FROM MENU 
-int Snsr_Trol_Postn = 0; //Initialization value arbitrary 
-int Mot_Trol_Dirctn_Bkwrd = -1; 
-int Mot_Trol_Dirctn_Fwrd = 1; 
-int Pin_Snsr_Trol = 6; // Pin on TINAH. As per TINAH log
-int Pin_Mot_Trol = 2; // Pin on TINAH. As per TINAH log
-int Mot_Trol_Speed = 100; // Value is 1/2.55 of maximum, CAN CHANGE SPEED 
-int Mot_Trol_Delay_ms; // Delay time arbitrary; determines accuracy of stoppages; CAN CHANGE DELAY TIME 
-    // Values below are arbitrary – set in menu?
-int Mot_Trol_Dirctn = 1; 
-int Postn_Trol_Destntn = 3; //ARBITRARY DYNAMIC INITIALIZATION VALUE 
-int Postn_Trol_Register = 0; //Values 0 to 3 correspond to trolley position: (AtBoom) = 0, (TubRimMax) = 1 , (OverBasket) = 2 , (OverDryAgent) = 3 , (MaxExtension) = 4 . First position: OverBasket
+//==========================================VARIABLES ONLY FOR FUNCTION setTrolleyHorizontalPosition==========================================
 
-//          VARIABLES ONLY FOR FUNCTION setClawBlockVerticalPosition
-//Important concerns: delay length, initial claw block position, claw block motor speed,
-int Postn_ClBlk_PrvsSnsr = White_Tape;  //Initialization value; MAKE SO CAN CHOOSE FROM MENU //Postn_ClBlk_PrvsSns
-int Snsr_ClBlk_Postn = 0; //Initialization value arbitrary 
+int Postn_Trol_PrvsSnsr = 0;      // You must choose initialization value
+int Snsr_Trol_Postn = 0;          // Initialization value completely arbitrary 
+int Mot_Trol_Dirctn_Bkwrd = -1;
+int Mot_Trol_Dirctn_Fwrd = 1; 
+int Pin_Snsr_Trol = 6;            // Pin on TINAH. As per TINAH log
+int Pin_Mot_Trol = 2;             // Pin on TINAH. As per TINAH log
+int Mot_Trol_Speed = 200;         // Value is Mot_Trol_Speed/255 of maximum. User must choose initialization value.
+int Mot_Trol_Dirctn = 1;          // Initialization value completely arbitrary 
+int Postn_Trol_Destntn = 3;       // Values meanings correspond to those of Postn_Trol_Register. Initialization value completely arbitrary 
+int Postn_Trol_Register = 0;      // Values 0 to 4 correspond to trolley position (see Postn_Trol variables). First position: At boom.
+int Postn_Trol_AtBoom = 0;
+int Postn_Trol_TubRimMax = 1;
+int Postn_Trol_OverBasket = 2;
+int Postn_Trol_OverDryAgent = 3; 
+int Postn_Trol_MaxExtnsn = 4;
+
+//==========================================VARIABLES ONLY FOR FUNCTION setClawBlockVerticalPosition==========================================
+
+int Postn_ClBlk_PrvsSnsr = White_Tape;    // Initialization value important (re: whether Snsr_ClBlk_Postn initial reading results in transition assumption.) 
+int Snsr_ClBlk_Postn = 0;                 // Initialization value completely arbitrary
 int Mot_ClBlk_Dirctn_Down = -1;
 int Mot_ClBlk_Dirctn_Up = 1;
-int Pin_Snsr_ClBlk = 7; // Pin on TINAH. As per TINAH log 
-int Pin_Mot_ClBlk = 3; // Pin on TINAH. As per TINAH log
-int Mot_ClBlk_Speed = 100; // Value is 1/2.55 of maximum, CAN CHANGE SPEED 
-int Mot_ClBlk_Delay_ms; // Delay time arbitrary; determines accuracy of stoppages; CAN CHANGE DELAY TIME
-    // Values below are arbitrary – set in menu?
-int Mot_ClBlk_Dirctn = 1; 
-int Postn_ClBlk_Destntn = 2; //ARBITRARY DYNAMIC INITIALIZATION VALUE 
-int Postn_ClBlk_Register = 0; //Values 0 to 3 correspond to claw block position: (AtJib) = 0 , (AtDryAgent) = 1 , (AtWater) = 2 , (MaxExtension) = 3. First position: AtJib
+int Pin_Snsr_ClBlk = 7;                   // Pin on TINAH. As per TINAH log 
+int Pin_Mot_ClBlk = 3;                    // Pin on TINAH. As per TINAH log
+int Mot_ClBlk_Speed = 200;                // Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
+int Mot_ClBlk_Dirctn = 1;                 // Initialization value completely arbitrary 
+int Postn_ClBlk_Destntn = 2;              // Values correspond to those of Postn_ClBlk_Register ARBITRARY DYNAMIC INITIALIZATION VALUE 
+int Postn_ClBlk_Register = 0;             // Values 0 to 3 correspond to claw block position: (AtJib) = 0 , (AtDryAgent) = 1 , (AtWater) = 2 , (MaxExtension) = 3. First position: AtJib
+int Postn_ClBlk_AtJib = 0;
+int Postn_ClBlk_AtDryAgent = 1;
+int Postn_ClBlk_AtWater = 2;
+int Postn_ClBlk_MaxExtension = 3;
+
+//==========================================
 
 //          VARIABLES ONLY FOR MENU (in main loop)
 double Menu_Destntn_Ratio = 3.0/ 1023.0;  //Ratio to convert knob(6) input in menu to get correct destination
@@ -135,6 +142,8 @@ void loop()
 //      FUNCTIONS START HERE
 
 
+//==========================================FUNCTION: setHorizontalTrolleyPosition() =====================================================================
+
 /* 
   Incoming argument: Destination_ Trolley_Position . Must have min value 0 and max value 3.
   Destination_ Trolley_Position compared with Postn_Trol_Register to see if higher or lower.
@@ -154,18 +163,18 @@ else if(Postn_Trol_Destntn = Postn_Trol_Register)
   return;
 
 //Drive motor until destination, checking if sense tape marker
-while(Postn_Trol_Register != Postn_Trol_Destntn) {
-  motor.speed(Pin_Mot_Trol, Mot_Trol_Speed*Mot_Trol_Dirctn);
-  Postn_Trol_PrvsSnsr = Snsr_Trol_Postn;
-  Snsr_Trol_Postn = digitalRead(Pin_Snsr_Trol);
+  while(Postn_Trol_Register != Postn_Trol_Destntn) {
+    motor.speed(Pin_Mot_Trol, Mot_Trol_Speed*Mot_Trol_Dirctn);
+    Postn_Trol_PrvsSnsr = Snsr_Trol_Postn;
+    Snsr_Trol_Postn = digitalRead(Pin_Snsr_Trol);
 
-  //If see tape marker transition (from black to white patch (which is position marker)), increment trolley position register according to motor direction
-  if(Postn_Trol_PrvsSnsr != Snsr_Trol_Postn & Postn_Trol_PrvsSnsr == Black_Tape){
-    if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_Fwrd)
-      Postn_Trol_Register++;
-    else
-      Postn_Trol_Register--;
-  }
+      //If see tape marker transition (from black to white patch (which is position marker)), increment trolley position register according to motor direction
+      if(Postn_Trol_PrvsSnsr != Snsr_Trol_Postn & Postn_Trol_PrvsSnsr == Black_Tape){
+      if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_Fwrd)
+        Postn_Trol_Register++;
+      else
+        Postn_Trol_Register--;
+      }
     
   //Displays sensor's voltage and position register
     LCD.clear();  
@@ -175,22 +184,23 @@ while(Postn_Trol_Register != Postn_Trol_Destntn) {
     LCD.setCursor(0,1);
     LCD.print("TrolPostn: ");
     LCD.print(Postn_Trol_Register);
-                                                                            delay(20);  //THIS DELAY LIMITS SPEED
-  
-}
+    
+  delay(20);  //THIS DELAY LIMITS SPEED
+  }
 
     //Stop motor here, since you've reached destination (condition for exiting above while loop)
   if (Postn_Trol_Register == Postn_Trol_Destntn){
   motor.speed(Pin_Mot_Trol, Mot_Speed_Stop);
   }
 
-                                                                            delay(1000);  //FOR TESTING ONLY; REMOVE AFTER
-  
+delay(1000);  //FOR TESTING ONLY; REMOVE AFTER
+
 //return after while loop
 return;
 }
 
 
+//==========================================FUNCTION: setClawBlockVerticalPosition() =====================================================================
 
 /* 
   Incoming argument: Destination_ Claw_Block_Position . Must have min value 0 and max value 2.
@@ -224,6 +234,7 @@ while(Postn_ClBlk_Register != Postn_ClBlk_Destntn) {
       Postn_ClBlk_Register--;
   }
 
+//==========================================DISPLAY; ONLY USED IN TESTING!!! DELETE AFTER
   //Displays sensor's voltage and position register
     LCD.clear();  
     LCD.home();
@@ -232,7 +243,9 @@ while(Postn_ClBlk_Register != Postn_ClBlk_Destntn) {
     LCD.setCursor(0,1);
     LCD.print("ClBlkPostn: ");
     LCD.print(Postn_ClBlk_Register);
-                                                                            delay(20);  //THIS DELAY LIMITS SPEED
+//==========================================DELETE ABOVE; ONLY USED IN TESTING!!! DELETE AFTER
+
+delay(20);  //THIS DELAY LIMITS SPEED
   
   }
 
@@ -241,11 +254,8 @@ while(Postn_ClBlk_Register != Postn_ClBlk_Destntn) {
   motor.speed(Pin_Mot_ClBlk, Mot_Speed_Stop);
   }
 
-                                                                            delay(1000);  //FOR TESTING ONLY; REMOVE AFTER
+delay(1000);  //FOR TESTING ONLY; REMOVE AFTER
 
 //return after while loop
 return;
 }
-
-
-
