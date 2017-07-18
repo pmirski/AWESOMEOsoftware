@@ -70,7 +70,6 @@ int Pin_Snsr_ZiplineArrival = 9999999;
 int Snsr_ZiplineArrival = 9999999;
 int Postn_Robot_UnderZL = 1;        //Arbitrary until know what it needs to be re: sensor reading once zipline trips sensor
 
-unsigned long Ubiquitous_Timer;
 // TO DO AFTER INTEGRATION: delete all these variables since they're already in main loop
 int State_WaitAtStart = 0;                   
 int State_Go2IRGate = 1;                  
@@ -215,7 +214,7 @@ State_Register == State_Go2ZipLine;
                                             
 }
 
-//=======================================================================FUNCTION: driveWheels() =====================================================================
+//=======================================================================FUNCTION: driveWheels()=====================================================================
 void driveWheels() {
 
 //=======================================================================P.I.D. CODE BLOCK==========================================

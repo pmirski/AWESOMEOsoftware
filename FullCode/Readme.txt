@@ -3,6 +3,7 @@
 //    2. Trolley (at tower), ClawBlock (at jib), and Claw (open) position values are initially 0. *Ideally, you can choose these initial values from menu.*
 
 // To do:
+//   -2. Note that you're starting from 2nd line for sure. Nothing for special 1st line retrieval done (and will not be, unless group agrees).
 //   -1. Complete Robot State variables, and start utilizing once integrate DRIVEfunction code block
 //    0. Determine protocol for getting agents
 //    1. Determine angle values for: all 3 crane angles, all 3 claw angles
@@ -12,6 +13,8 @@
 //    5. LessImportant: ensure have correct function descriptions
 //    6. LessImportant: take away initialization values for vars with comment "Initialization value completely arbitrary"
 //    7. Less important: Try changing "postn" to "pos" at end
+//    8. Less important: Don't initialize variables whose initial value doesn't matter
+
 
 // Not yet addded:
 //    1. 2nd search if unsuccessful first time; just single attempt right now
