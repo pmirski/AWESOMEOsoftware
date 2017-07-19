@@ -124,7 +124,7 @@ void loop() {
   
   int correction = error*kp + intError*ki + derError*kd;
 
-  motor.speed(0, (SPEED - correction)*-1);
+  motor.speed(0, (SPEED - correction));
   motor.speed(1, SPEED + correction);
 
   count += 1;
