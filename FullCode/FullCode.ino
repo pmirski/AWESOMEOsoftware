@@ -191,7 +191,7 @@ void loop()
 
     //==========================================State_Go2IRGate
   // Robot tape tracks for Time_ApprchRamp until at beginning of ramp.
-  Time_WhenTimerWasLastRead = millis();
+  Time_WhenTimerWasLastRead = millis();  
 
   while(State_Register == State_ApprchRamp && !(millis() > (Time_WhenTimerWasLastRead + Time_ApprchRamp)) ){  
     driveWheels();
@@ -246,16 +246,27 @@ void loop()
       motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
       delay(1000);
       Snsr_Drive_FrontInR = digitalRead(Pin_Snsr_Drive_FrontInR);
+      
+      //Jakes Debug
+      LCD.clear();
+      LCD.home();
+      LCD.print("Found R-Corner");
                                                                                 //IT'S NOT WORKING BELOW THIS LINE, BABY
       while(Snsr_Drive_FrontInR == White_Tape){
+        //Jakes Debug
+        LCD.setCursor(0,1);
+        LCD.print("Look 4 Tape");
+        
         Snsr_Drive_FrontInR = digitalRead(Pin_Snsr_Drive_FrontInR);
         motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed*(-1));
         motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
       }
-        
-        State_Register = State_AprchNextLine;   
+      LCD.clear();
+      LCD.home();
+      LCD.print("On line again")
+      State_Register = State_AprchNextLine;   
       //State_Register = State_AprchLine1;    // Commented out because we're NOT USING AprchLine1 at the moment.
-     }
+    }
       
   }
 
@@ -271,18 +282,19 @@ void loop()
   //Robot follows tape until sensors at tower base sense next line.
   //State_Register = State_AprchNextLine;
 
-  //  START OF JUST TESTING : stop at next line
+  /*  START OF JUST TESTING : stop at next line
   while(digitalRead(Pin_Snsr_Drive_FrontOutL) == White_Tape && digitalRead(Pin_Snsr_Drive_FrontOutR) == White_Tape){
     driveWheels();
   }
-  //  END OF TESTING : below commented out because not used
+  */  
+  //END OF TESTING : below commented out because not used
   //while(State_Register == State_AprchNextLine && digitalRead(Pin_Snsr_TowerBottom_Lines2to6_L) == White_Tape && digitalRead(Pin_Snsr_TowerBottom_Lines2to6_R) == White_Tape){
   //  driveWheels();
   //}
 
     //==========================================State_Retrvl
   //Function called to retrieve agent at circle line, when perpendicular. Starts from turning crane to tub. Ends once claw is opened and drops agent
-  doAgentRtrvl(DryRetrieval, AgentHeight_High);
+  //doAgentRtrvl(DryRetrieval, AgentHeight_High);
 
 
       /*
