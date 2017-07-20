@@ -1,8 +1,14 @@
 // Nota bene:
 //    1. Variable values do not reset during testing, unless you reset them.
 //    2. Trolley (at tower), ClawBlock (at jib), and Claw (open) position values are initially 0. *Ideally, you can choose these initial values from menu.*
+//    3. Slow downs added at top of ramp, where glboal variable value changes (never want old speed again)
 
 // To do:
+
+After testing: 
+	Turn Postn_Trol_Register & Postn_ClBlk_Register initialization values back to 0.
+
+//   -3. YOU MUST ENSURE THAT THE HOIZONTAL&VERTICAL TRANSLAITON SPEEDS ARE SUFFICIENT TO GET QRD WELL INTO WHITE TAPE TERRITORY; transition zones results in poor hi/lo voltage readings.
 //   -2. Note that you're starting from 2nd line for sure. Nothing for special 1st line retrieval done (and will not be, unless group agrees).
 //   -1. Complete Robot State variables, and start utilizing once integrate DRIVEfunction code block
 //    0. Determine protocol for getting agents
