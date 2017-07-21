@@ -7,6 +7,10 @@
 
 
 // To do for one person (i.e. Pawel):
+//     -3. Make delays into constants
+//     -2. Make IR gate code:
+		-Wait for low to high transition, and ensure get high signal for e.g. 50ms and if any low in there, interrupt
+//     -1. DO PWM FOR SLOWER SERVO TURNS <---ON WEEKEND
 //	0. GO THRU CODE AND READ/DO ALL TO-DO'S IN COMMENTS
 //	1. Determine exact servo angle values for: all 2or3 crane angles, all 2or3 claw angles
 //	2. Determine length of time to wait for servo to complete action (i.e. close/pivot)
