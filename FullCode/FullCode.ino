@@ -59,8 +59,7 @@ int State_Go2IRGate = 1;
 int State_Wait4IRBeacon = 2;  
     int Snsr_IR; 
     int Pin_Snsr_IR = 9999;                   // TO DO:  Change when know if using. Random numbers right now! 
-    int GoFrequency = 10000;
-    int WaitFrequency = 1000;              
+    boolean GoSignal;                         // Indicates signal from IR PCB. 
 
 int State_ApprchRamp = 3;  
     unsigned long Time_WhenTimerWasLastRead = 0;
@@ -308,20 +307,38 @@ void loop()
   // 
   // Currently commented out code: Robot waits until 10000Hz is sensed. Delay and repeat of check to "double check" that GO reading was not due to error.
   //
+
+  
+  //full stop in front of IR gate
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  
+  //If when you first start sensing for IR signal, the gate is open, just wait this one out. To risky to try to make it through without knowing how long the gate has already been open
+  //Consider sensing earlier to determine if can go straight through
+  while(Snsr_IR == GoFrequency){
+    //wait here
+    }
+
+  //while the gate is closed, continue to wait
+  while(!GoSignal){
+    delay(5)
+    //if a go signal is detected, sample the signal continuously for some time to ensure the signal is staying high before going
+    if(GoSignal){
+      unsigned long transition = millis();
+      unsigned long sample_time = 50;
+      while(millis() - transition < sample_time){
+        //if signal switches to no go at any time during sample period, give control back to the parent loop to look for the next go signal
+        if(!GoSignal){
+          break;
+        }
+      }
+    }
+  }
    
-//                                                                     NO HARDWARE YET!!!
-//  while(Snsr_IR != GoFrequency){
-//    }
-//    
-//  delay(50);
-//  
-//  while(Snsr_IR != GoFrequency){
-//    }
-//
+
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-      motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
-      motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+
       delay(5000);  //5sec delay in lieu of the interrupt code above. 
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
