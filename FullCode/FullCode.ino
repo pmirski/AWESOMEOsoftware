@@ -221,7 +221,7 @@ int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to
 //***********************************************************************SECTION: INTERUPTS************************************************************************************
 //*****************************************************************************************************************************************************************************
 ISR(INT1_vect) {resetClawBlockVerticalPosition();};
-ISR(INT2_vect) {resetTrolleyHorizontalPosition()};
+ISR(INT2_vect) {resetTrolleyHorizontalPosition();};
 ISR(INT3_vect) {};
 
 void enableExternalInterrupt(unsigned int INTX, unsigned int mode)
@@ -343,13 +343,13 @@ void loop()
   
   //If when you first start sensing for IR signal, the gate is open, just wait this one out. To risky to try to make it through without knowing how long the gate has already been open
   //Consider sensing earlier to determine if can go straight through
-  while(Snsr_IR == GoFrequency){
+  while(Snsr_IR == GoSignal){
     //wait here
-    }
+  }
 
   //while the gate is closed, continue to wait
   while(!GoSignal){
-    delay(5)
+    delay(5);
     //if a go signal is detected, sample the signal continuously for some time to ensure the signal is staying high before going
     if(GoSignal){
       unsigned long transition = millis();
