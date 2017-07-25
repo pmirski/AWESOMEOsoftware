@@ -160,7 +160,7 @@ int Postn_Trol_TubRimMax = 1;
 int Postn_Trol_OverBasket = 2;
 int Postn_Trol_OverDryAgent = 3;
 int Postn_Trol_MaxExtnsn = 4;     // TO TEST: You only have 4 white tape pieces on jib now. Determine how many you want.
-int Postn_Trol_Register = Postn_Trol_OverBasket;  // Values 0 to 4 correspond to trolley position (see Postn_Trol variables). First position: Postn_Trol_AtBoom = 0
+volatile int Postn_Trol_Register = Postn_Trol_OverBasket;  // Values 0 to 4 correspond to trolley position (see Postn_Trol variables). First position: Postn_Trol_AtBoom = 0
 
 
 //=======================================================================VARIABLES: FOR FUNCTION setClawBlockVerticalPosition==========================================
@@ -180,7 +180,7 @@ int Postn_ClBlk_AtDryAgentHigh = 1;
 int Postn_ClBlk_AtDryAgentMedium = 2;
 int Postn_ClBlk_AtDryAgentLow = 3;
 int Postn_ClBlk_AtWater = 4;
-int Postn_ClBlk_Register = Postn_ClBlk_AtJib;  // Values 0 to 4 correspond to claw block position (see Postn_ClBlk variables). First position: Postn_ClBlk_AtJib = 0
+volatile int Postn_ClBlk_Register = Postn_ClBlk_AtJib;  // Values 0 to 4 correspond to claw block position (see Postn_ClBlk variables). First position: Postn_ClBlk_AtJib = 0
 
 
 //=======================================================================VARIABLES: FOR FUNCTION setClawPosition. Using RCServo1.write(angle) as per TINAH log==========
@@ -218,6 +218,32 @@ int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to
 
 
 //*****************************************************************************************************************************************************************************
+//***********************************************************************SECTION: INTERUPTS************************************************************************************
+//*****************************************************************************************************************************************************************************
+ISR(INT1_vect) {resetClawBlockVerticalPosition();};
+ISR(INT2_vect) {resetTrolleyHorizontalPosition()};
+ISR(INT3_vect) {};
+
+void enableExternalInterrupt(unsigned int INTX, unsigned int mode)
+{
+  if (INTX > 3 || mode > 3 || mode == 1) return;
+  cli();
+  /* Allow pin to trigger interrupts        */
+  EIMSK |= (1 << INTX);
+  /* Clear the interrupt configuration bits */
+  EICRA &= ~(1 << (INTX*2+0));
+  EICRA &= ~(1 << (INTX*2+1));
+  /* Set new interrupt configuration bits   */
+  EICRA |= mode << (INTX*2);
+  sei();
+}
+ 
+void disableExternalInterrupt(unsigned int INTX)
+{
+  if (INTX > 3) return;
+  EIMSK &= ~(1 << INTX);
+}
+//*****************************************************************************************************************************************************************************
 //***********************************************************************SECTION: ARDUINO SETUP*************************************************************************
 //*****************************************************************************************************************************************************************************
 
@@ -231,6 +257,8 @@ void setup()
   pinMode(inPin, INPUT);
   RCServo0.write(Postn_Crane_AngleBot);   //crane
   RCServo1.write(Mot_Claw_Angle_Open);   //agent grabber
+  enableExternalInterrupt(INT1, FALLING);
+  enableExternalInterrupt(INT2, FALLING);
 }
 
 
@@ -1176,3 +1204,22 @@ void setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
 
   return;
 }
+
+//=======================================================================FUNCTION: resetClawBlockVerticalPosition() =====================================================================
+
+// 
+// Resets the value for the location of the vertical claw block when a limit switch is tripped
+
+void resetClawBlockVerticalPosition(){
+  Postn_ClBlk_Register = Postn_ClBlk_AtJib;
+}
+
+//=======================================================================FUNCTION: resetTrolleyHorizontalPosition() =====================================================================
+
+// 
+// Resets the value for the location of the horizontal trolley when a limit switch is tripped
+
+void resetTrolleyHorizontalPosition(){
+  Postn_Trol_Register = Postn_Trol_MaxExtnsn;
+}
+
