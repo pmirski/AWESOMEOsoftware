@@ -31,7 +31,7 @@ int inPin = 0;
 
 //=======================================================================VARIABLES: GENERAL================================================================================
 
-int Mot_Wheels_Speed = 125;                     // Wheels speed
+int Mot_Wheels_Speed = 110;                     // Wheels speed
 int Mot_Wheels_Speed_Reset = Mot_Wheels_Speed;  // Used to reset Mot_Wheels_Speed when value changes                  
 int Mot_Speed_Stop = 0;                         // Use this to stop motors
 
@@ -39,8 +39,8 @@ int NumOfAgentsSaved = 0;                       // Number of agents in possessio
 int Black_Tape = 1;                             // Used to determine whether trolley and claw block sensors read white or black tape
 int White_Tape = 0;                             // See Black_Tape comment
 
-int Time_BegngOfHeat;                           // Keeps track of time since beginning of heat
-int Time_BeginWetRtrvls = 60000;                // After 1 minute, only wet retrievals are possible! (vs. dry retrievals)
+unsigned long Time_BegngOfHeat;                           // Keeps track of time since beginning of heat
+unsigned long Time_BeginWetRtrvls = 60000;                // After 1 minute, only wet retrievals are possible! (vs. dry retrievals)
 
 int Snsr_Chassis_FrontCrnrR = 0;                // Initialization value completely arbitrary 
 int Pin_Snsr_Chassis_FrontCrnrR = 42;
@@ -54,7 +54,7 @@ int State_Register = 0;
 int State_WaitAtStart = 0;                   
 
 int State_Go2IRGate = 1;     
-    int Time_Go2IRGate = 2000;
+    unsigned long Time_Go2IRGate = 2000;
 
 int State_Wait4IRBeacon = 2;  
     int Snsr_IR; 
@@ -63,15 +63,15 @@ int State_Wait4IRBeacon = 2;
     int WaitFrequency = 1000;              
 
 int State_ApprchRamp = 3;  
-    int Time_WhenTimerWasLastRead = 0;
-    int Time_ApprchRamp = 5000;             // TO TEST: determine this!!! Right now: 5 seconds. In milliseconds.             
+    unsigned long Time_WhenTimerWasLastRead = 0;
+    unsigned long Time_ApprchRamp = 3500;             // TO TEST: determine this!!! Right now: 5 seconds. In milliseconds.             
 
 int State_GoUpRamp = 4;   
-    int Time_GoUpRamp = 5000;               // TO TEST: determine this!!! 
-    int Mot_Wheels_Speed_Ramp = 150;
+    unsigned long Time_GoUpRamp = 1500;               // TO TEST: determine this!!! 
+    int Mot_Wheels_Speed_Ramp = 200;
 
 int State_AprchCircle = 5;
-      int MotUpperPltfrmSlowDownFactor = 2.5;  //VERY IMPORTANT: THIS IS BY HOW MUCH MOT_DRIVE SPEED SLOWS AFTER RAMP, FOR REMAINDER OF HEAT        
+      int MotUpperPltfrmSlowDownFactor = 1.5;  //VERY IMPORTANT: THIS IS BY HOW MUCH MOT_DRIVE SPEED SLOWS AFTER RAMP, FOR REMAINDER OF HEAT        
 
 int State_EntrgCircle = 6;
 
@@ -83,12 +83,12 @@ int State_AprchLine1 = 7;                   // TO DO: determine if can put just 
 */
 
 int State_AprchNextLine = 7;
-    int Time_AfterReadLineToStop = 1.5;           // TO DO:  Change when know if using. COMPLETE GUESS RIGHT NOW!
+    unsigned long Time_AfterReadLineToStop = 300;           // TO DO:  Change when know if using. COMPLETE GUESS RIGHT NOW!
 
 int State_Retrvl = 8;
     int RetrievalType;
     int WetRetrieval = 1;
-    int DryRetrieval = 0;   
+    int DryRetrieval = 0;
 
 int State_Go2ZipLine = 9;
     int Pin_Snsr_ZiplineArrival = 2;              // Pin on TINAH. As per TINAH log
@@ -152,7 +152,7 @@ int Mot_Trol_Dirctn_Bkwrd = -1;
 int Mot_Trol_Dirctn_Fwrd = 1; 
 int Pin_Snsr_Trol = 0;            // Pin on TINAH. As per TINAH log
 int Pin_Mot_Trol = 2;             // Pin on TINAH. As per TINAH log (same as Mot_Pltfrm)
-int Mot_Trol_Speed = 65;          // TO TEST: Value is Mot_Trol_Speed/255 of maximum. User must choose initialization value.
+int Mot_Trol_Speed = 90;          // TO TEST: Value is Mot_Trol_Speed/255 of maximum. User must choose initialization value.
 int TrolBwdSpeedDivider = 1.3;    // TO TEST: Denominator of motor speed when Trol goes backward
 int Mot_Trol_Dirctn = 1;          // Initialization value completely arbitrary 
 int Postn_Trol_Destntn = 3;       // Values meanings correspond to those of Postn_Trol_Register. Initialization value completely arbitrary 
@@ -161,7 +161,7 @@ int Postn_Trol_TubRimMax = 1;
 int Postn_Trol_OverBasket = 2;
 int Postn_Trol_OverDryAgent = 3;
 int Postn_Trol_MaxExtnsn = 4;     // TO TEST: You only have 4 white tape pieces on jib now. Determine how many you want.
-int Postn_Trol_Register = Postn_Trol_AtBoom;  // Values 0 to 4 correspond to trolley position (see Postn_Trol variables). First position: Postn_Trol_AtBoom = 0
+int Postn_Trol_Register = Postn_Trol_OverBasket;  // Values 0 to 4 correspond to trolley position (see Postn_Trol variables). First position: Postn_Trol_AtBoom = 0
 
 
 //=======================================================================VARIABLES: FOR FUNCTION setClawBlockVerticalPosition==========================================
@@ -172,8 +172,8 @@ int Mot_ClBlk_Dirctn_Down = -1;
 int Mot_ClBlk_Dirctn_Up = 1;
 int Pin_Snsr_ClBlk = 1;                   // Pin on TINAH. As per TINAH log 
 int Pin_Mot_ClBlk = 3;                    // Pin on TINAH. As per TINAH log
-int Mot_ClBlk_Speed = 90;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
-int ClbBlkDwdSpeedDivider = 1.3;          // TO TEST: Best value. Denominator of motor speed when ClBlk goes downward
+int Mot_ClBlk_Speed = 180;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
+int ClbBlkDwdSpeedDivider = 2;          // TO TEST: Best value. Denominator of motor speed when ClBlk goes downward
 int Mot_ClBlk_Dirctn = 1;                 // Initialization value completely arbitrary 
 int Postn_ClBlk_Destntn = 2;              // Values correspond to those of Postn_ClBlk_Register ARBITRARY DYNAMIC INITIALIZATION VALUE 
 int Postn_ClBlk_AtJib = 0;
@@ -193,13 +193,13 @@ int Postn_ClBlk_Register = Postn_ClBlk_AtJib;  // Values 0 to 4 correspond to cl
 
 int Postn_Claw_Open = 0;
 //int Postn_Claw_HaveAgent = 1;     //Commented out because we're not using right now
-int Postn_Claw_Close = 2;
+int Postn_Claw_Close = 1;           //Commented out because we're not using right now
 int Snsr_Claw_Postn = 0;                      // Analog pot. Initialization value completely arbitrary.  Values 0 to 2 correspond to the 3 position variables.
 int Postn_Claw_Destntn = 0;                   // Values 0 to 1 correspond to the 2 position variables. Initialization value completely arbitrary 
 int Postn_Claw_Register = Postn_Claw_Open;                  // Values 0 to 1 correspond to the 2 position variables. First position: Postn_Claw_Open = 0
 double Snsr_Claw_CnvrsnRatio = (2.0/1023.0);  // ASSUMPTION: have an agent means half open, This is the conversion used to get 0,1 or 2 values for Snsr_Claw_Postn that results in 
-int Mot_Claw_Angle_Close = 0;                 // TO DO: ASCERTAIN THIS VALUE IS CORRECT
-int Mot_Claw_Angle_Open = 45;                 // TO DO: ASCERTAIN THIS VALUE IS CORRECT
+int Mot_Claw_Angle_Close = 0;                 // Done: this value is correct
+int Mot_Claw_Angle_Open = 180;                // Done: this value is correct
 int Pin_Snsr_Claw = 43;                       // Pin on TINAH. As per TINAH log ANALOG
 int Mot_Claw_Dirctn = 0;                      // Initialization value completely arbitrary  
 
@@ -230,7 +230,8 @@ void setup()
   #include <phys253setup.txt>
   Serial.begin(9600);  
   pinMode(inPin, INPUT);
-  RCServo0.write(90);
+  RCServo0.write(Postn_Crane_AngleBot);   //crane
+  RCServo1.write(Mot_Claw_Angle_Open);   //agent grabber
 }
 
 
@@ -253,6 +254,23 @@ void loop()
     delay(50);
   }
 
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  RetrievalType = DryRetrieval;
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow);
+
+  LCD.clear();
+  LCD.home();
+  LCD.setCursor(0,1);
+  LCD.print("AtEndVoidLoop.1hrDly");
+  
+  delay(3600000);
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+
+
+
+
   Time_BegngOfHeat = millis();
 
   State_Register = State_Go2IRGate;
@@ -261,16 +279,16 @@ void loop()
   LCD.home();   
   LCD.print("State_Go2IRGate");
 
-  
+
   //=======================================================================State_Go2IRGate
   
-  /*
-   * Robot tape tracks for Time_ApprchRamp until at beginning of ramp.
-   */
+  //
+  // Robot tape tracks for Time_ApprchRamp until at beginning of ramp.
+  //
    
   Time_WhenTimerWasLastRead = millis();
 
-  while(State_Register == State_Go2IRGate && !(millis() > (Time_WhenTimerWasLastRead + Time_Go2IRGate)) ){  
+  while(State_Register == State_Go2IRGate && (millis() < (Time_WhenTimerWasLastRead + Time_Go2IRGate)) ){  
     driveWheels();
   }
 
@@ -283,25 +301,27 @@ void loop()
 
   //=======================================================================State_Wait4IRBeacon 
         
-  /*
-   * TO DO:     Wait for low to high transition, and ensure get high signa by, for maybe ~50ms (choose time), see if any high-to-low transitions occu. In that case, 
-   * ensure an interrupt is called which results in robot continuing to wait. <--Either you work more / have Jon explain his wrongly-parsed sameple code on ENPH253 website, 
-   * or Jake does this.
-   * 
-   * Currently commented out code: Robot waits until 10000Hz is sensed. Delay and repeat of check to "double check" that GO reading was not due to error.
-   */
+  //
+  // TO DO:     Wait for low to high transition, and ensure get high signa by, for maybe ~50ms (choose time), see if any high-to-low transitions occu. In that case, 
+  // ensure an interrupt is called which results in robot continuing to wait. <--Either you work more / have Jon explain his wrongly-parsed sameple code on ENPH253 website, 
+  // or Jake does this.
+  // 
+  // Currently commented out code: Robot waits until 10000Hz is sensed. Delay and repeat of check to "double check" that GO reading was not due to error.
+  //
    
-/*                                                                     NO HARDWARE YET!!!
-  while(Snsr_IR != GoFrequency){
-    }
-    
-  delay(50);
-  
-  while(Snsr_IR != GoFrequency){
-    }
-*/
+//                                                                     NO HARDWARE YET!!!
+//  while(Snsr_IR != GoFrequency){
+//    }
+//    
+//  delay(50);
+//  
+//  while(Snsr_IR != GoFrequency){
+//    }
+//
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+      motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+      motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
       delay(5000);  //5sec delay in lieu of the interrupt code above. 
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
@@ -314,13 +334,13 @@ void loop()
 
   //=======================================================================State_ApprchRamp
     
-  /*
-   * Robot tape tracks for Time_ApprchRamp until at beginning of ramp.
-   */
+  //
+  // Robot tape tracks for Time_ApprchRamp until at beginning of ramp.
+  //
    
   Time_WhenTimerWasLastRead = millis();
 
-  while(State_Register == State_ApprchRamp && !(millis() > (Time_WhenTimerWasLastRead + Time_ApprchRamp)) ){  
+  while(State_Register == State_ApprchRamp && (millis() < (Time_WhenTimerWasLastRead + Time_ApprchRamp)) ){  
     driveWheels();
   }
 
@@ -333,19 +353,22 @@ void loop()
   
   //=======================================================================State_GoUpRamp
     
-  /*
-   * Robot tape tracks for Timing_MilliscndsApprchRamp milliseconds until ostensibly at ramp
-   */
+  //
+  // Robot tape tracks for Timing_MilliscndsApprchRamp milliseconds until ostensibly at ramp
+  //
    
   Time_WhenTimerWasLastRead = millis();
 
-  if(State_Register == State_GoUpRamp){
-    Mot_Wheels_Speed_Reset == Mot_Wheels_Speed;
-    Mot_Wheels_Speed = Mot_Wheels_Speed_Ramp;
-  }
-    
+  Mot_Wheels_Speed = Mot_Wheels_Speed_Ramp;
+
   while( !( millis() > (Time_WhenTimerWasLastRead + Time_GoUpRamp) ) ){ 
-    driveWheels();      
+    driveWheels();
+    
+    LCD.clear();
+    LCD.home();   
+    LCD.print("State_GoUpRamp");
+    LCD.setCursor(0,1);
+    LCD.print(Mot_Wheels_Speed);        
   }
 
   Mot_Wheels_Speed = Mot_Wheels_Speed_Reset;
@@ -359,11 +382,11 @@ void loop()
 
   //=======================================================================State_AprchCircle
     
-  /*
-   * Follow tape until Snsr_Drive_FrontOutR senses black tape. When does, pivot on right wheel (driving on left) until 
-   * Snsr_Drive_FrontInL & Snsr_Drive_FrontInR see black again (i.e. are on the circle again). Then proceed to next state.
-   * Delay is to ensure doesn't immediately scan for black tape, because will see immediately. 
-   */
+  //
+  // Follow tape until Snsr_Drive_FrontOutR senses black tape. When does, pivot on right wheel (driving on left) until 
+  // Snsr_Drive_FrontInL & Snsr_Drive_FrontInR see black again (i.e. are on the circle again). Then proceed to next state.
+  // Delay is to ensure doesn't immediately scan for black tape, because will see immediately. 
+  //
 
   Mot_Wheels_Speed = Mot_Wheels_Speed/MotUpperPltfrmSlowDownFactor;
 
@@ -401,9 +424,10 @@ void loop()
   }
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-        /*
-         * Motor halt and time delay just for testing course beginning-to-entering circle.
-         */
+        //
+        // Motor halt and time delay just for testing course beginning-to-entering circle.
+        //
+        
         motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
         motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
          
@@ -419,26 +443,26 @@ void loop()
         LCD.setCursor(0,1);
         LCD.print("State_AprchNextLine");
 
-/*    //NOT USED AT THE MOMENT. IF USE THIS, ENSURE THAT DON'T CALL FUNCTIONS TO STOP AT LINE1 AGAIN LATER, AND JUST CONTINUE TO TAKE-OFF POINT IN CIRCLE
+//    //NOT USED AT THE MOMENT. IF USE THIS, ENSURE THAT DON'T CALL FUNCTIONS TO STOP AT LINE1 AGAIN LATER, AND JUST CONTINUE TO TAKE-OFF POINT IN CIRCLE
     //==========================================State_AprchLine1  <--------*********NOT USED
-/*  
- *  If used, ensure "State_Register = State_AprchLine1" executed in previous code block. 
- *  Here, robot follows tape until SOME? sensor senses first line. 
- *    <--put backslash here
-
-
-  while(State_Register == State_AprchLine1 && digitalRead(Pin_Snsr_TowerBottom_Line1) == White_Tape){
-driveWheels();
-  
-
-*/
+//  
+//  If used, ensure "State_Register = State_AprchLine1" executed in previous code block. 
+//  Here, robot follows tape until SOME? sensor senses first line. 
+//    <--put backslash here
+//
+//
+//while(State_Register == State_AprchLine1 && digitalRead(Pin_Snsr_TowerBottom_Line1) == White_Tape){
+//driveWheels();
+//
+//
+//
 
 
   //=======================================================================State_AprchNextLine
     
-  /*
-   * Robot follows tape until sensors at tower base sense next line.
-   */
+  //
+  // Robot follows tape until sensors at tower base sense next line.
+  //
  
   doAprchNextLine();
 
@@ -451,10 +475,10 @@ driveWheels();
 
   //=======================================================================State_Retrvl
 
-  /*
-   * Function called to retrieve agent at circle line, when perpendicular. Starts from turning crane to tub. 
-   * Ends once claw is opened and drops agent. Second line (Line2) from entrance is first line
-   */
+  //
+  // Function called to retrieve agent at circle line, when perpendicular. Starts from turning crane to tub. 
+  // Ends once claw is opened and drops agent. Second line (Line2) from entrance is first line
+  //
 
   RetrievalType = informIfWetOrDryRtrvl();
   doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium);
@@ -468,10 +492,10 @@ driveWheels();
 
   //=======================================================================State_Retrvl, State_AprchNextLine, State_Retrvl, State_AprchNextLine, etc. ...
 
-  /*
-   * From here, we move to Line3 thru Line6, doing low(3), high(4), medium(5), low(6),  code skips over entrance, 
-   * and do wet retrieval and high(1) at Line1.
-   */
+  //
+  // From here, we move to Line3 thru Line6, doing low(3), high(4), medium(5), low(6),  code skips over entrance, 
+  // and do wet retrieval and high(1) at Line1.
+  //
 
   doAprchNextLine();
 
@@ -557,9 +581,9 @@ driveWheels();
 
   //=======================================================================State_Go2ZipLine
 
-  /*
-   * Robot drives forward until zipline_arrival sensor is triggered
-   */
+  //
+  // Robot drives forward until zipline_arrival sensor is triggered
+  //
 
   while(digitalRead(Pin_Snsr_ZiplineArrival) != Postn_Robot_UnderZL ){
     motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed*(-1));
@@ -614,6 +638,11 @@ driveWheels();
   motor.speed(Pin_Mot_Pltfrm, Mot_Speed_Stop);
 
 
+
+
+
+
+
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
   LCD.home();
@@ -640,6 +669,7 @@ driveWheels();
 // Incoming argument: RetrievalType, AgentHeight. RetrievalType must be specified as either DryRetrieval or WetRetrieval.
 // If DryRetrieval, AgentHeight must be specified. For WetRetrieval, AgentHeight does not need to be specified.
 // Function meant to be called when tower-base aligned with  is at one of lines . Function calls other functions.
+
 void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   int FXN_Trol_Destntn;
   int FXN_Crane_Destntn;
@@ -661,7 +691,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.setCursor(0, 1);
   LCD.print("TrolReg: ");
   LCD.print(Postn_Trol_Register);
-  delay(2000);
+//  delay(2000);                  
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   
   setTrolleyHorizontalPosition(FXN_Trol_Destntn);
@@ -673,7 +703,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.home();
   LCD.print("CrnDest: ");
   LCD.print(FXN_Crane_Destntn);
-  delay(2000);
+//  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
   
@@ -692,7 +722,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.setCursor(0,1);
   LCD.print("CBReg: ");
   LCD.print(Postn_ClBlk_Register);
-  delay(2000);
+//  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
   
@@ -714,7 +744,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.setCursor(0,1);
   LCD.print("ClReg: ");
   LCD.print(Postn_Claw_Register);
-  delay(2000);
+//  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
   
@@ -731,7 +761,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.setCursor(0,1);
   LCD.print("CBReg: ");
   LCD.print(Postn_ClBlk_Register);
-  delay(2000);
+//  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
   
@@ -745,7 +775,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.home();
   LCD.print("PreFxnCrnDstn: ");
   LCD.print(FXN_Crane_Destntn);
-  delay(2000);
+//  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   
   setCranePosition(FXN_Crane_Destntn);
@@ -760,12 +790,12 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.print(FXN_Trol_Destntn);  
   LCD.print("TrolReg: ");
   LCD.print(Postn_Trol_Register);
-  delay(2000);
+//  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
    
   setTrolleyHorizontalPosition(FXN_Trol_Destntn);
 
-  FXN_Claw_Destntn = Postn_Claw_Open;
+  FXN_Claw_Destntn = Mot_Claw_Angle_Open;
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
@@ -775,7 +805,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.setCursor(0,1);
   LCD.print("ClReg: ");
   LCD.print(Postn_Claw_Register);
-  delay(2000);
+//  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   
   setClawPosition(FXN_Claw_Destntn);
@@ -794,9 +824,10 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
 
 
 //=======================================================================FUNCTION: driveWheels()=====================================================================
-/* 
-  Function drives wheels while tape-tracking.
-*/
+// 
+//Function drives wheels while tape-tracking.
+//
+
 void driveWheels() {
 
     //=======================================================================P.I.D. CODE BLOCK
@@ -875,12 +906,13 @@ void driveWheels() {
 
 
 //=======================================================================FUNCTION: doAprchNextLine() =====================================================================
-/*
- *No arguments. Simply approaches next line and, upon sensing, continues for Time_AfterReadLineToStop before stopping robot.
-*/
+//
+//No arguments. Simply approaches next line and, upon sensing, continues for Time_AfterReadLineToStop before stopping robot.
+//
+
 void doAprchNextLine() {
 
-  while(digitalRead(Pin_Snsr_Drive_FrontOutL) == White_Tape && digitalRead(Pin_Snsr_Drive_FrontOutR) == White_Tape){
+  while(digitalRead(Pin_Snsr_Drive_FrontOutL) == White_Tape || digitalRead(Pin_Snsr_Drive_FrontOutR) == White_Tape){
     driveWheels();
   } 
 
@@ -892,9 +924,9 @@ void doAprchNextLine() {
 }
 
 //=======================================================================FUNCTION: informIfWetOrDryRtrvl() =====================================================================
-/* 
- * Keeps track of time since beginning of heat. Returns whether or not it's time for wet retrievals.
- */
+// 
+// Keeps track of time since beginning of heat. Returns whether or not it's time for wet retrievals.
+//
 
 int informIfWetOrDryRtrvl() {
 
@@ -909,10 +941,10 @@ int informIfWetOrDryRtrvl() {
 
 
 //=======================================================================FUNCTION: setCranePosition() =====================================================================
-/* 
- * Incoming argument: Postn_Crane_Destntn . Must have min value 0s and max value 180s.
- * Sets position of crane.
-*/
+// 
+// Incoming argument: Postn_Crane_Destntn . Must have min value 0s and max value 180s.
+// Sets position of crane.
+//
 
 void setCranePosition(int FXN1_Crane_Destntn) {
 
@@ -942,16 +974,17 @@ void setCranePosition(int FXN1_Crane_Destntn) {
 
 //=======================================================================FUNCTION: setClawPosition() =====================================================================
 
-/* 
- * Incoming argument: Postn_Claw_Destntn . Must have min value 0 and max value 1 (open or closed).
- * Opens or closes claw, based on input argument. Registers whether final state is open, closed, or has agent.
- * If has agent, increments variable NumOfAgentsSaved.
- * CURRENTLY, SENSOR NOT USED, SO SOME CODE MAY BE IRRELEVANT. (E.G. NumOfAgentsSaved, Postn_Claw_Register)
-*/
+// 
+// Incoming argument: Postn_Claw_Destntn . Must have min value 0 and max value 1 (open or closed).
+// Opens or closes claw, based on input argument. Registers whether final state is open, closed, or has agent.
+// If has agent, increments variable NumOfAgentsSaved.
+// CURRENTLY, SENSOR NOT USED, SO SOME CODE MAY BE IRRELEVANT. (E.G. NumOfAgentsSaved, Postn_Claw_Register)
+//
+
 void setClawPosition(int FXN1_Claw_Destntn) {
 
   //Set claw servo direction according to destination. Return if already at destination
-  if(FXN1_Claw_Destntn = Postn_Claw_Register){
+  if(FXN1_Claw_Destntn == Postn_Claw_Register){
     return;
   } 
 
@@ -981,7 +1014,7 @@ void setClawPosition(int FXN1_Claw_Destntn) {
   LCD.home();
   LCD.print("InFxnClawnDstn: ");
   LCD.print(FXN1_Claw_Destntn);   
-  delay(3000);
+//  delay(3000);
 
   /*
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
@@ -999,14 +1032,14 @@ void setClawPosition(int FXN1_Claw_Destntn) {
 
 
 //=======================================================================FUNCTION: setHorizontalTrolleyPosition() =====================================================================
-/* 
- * Incoming argument: Destination_ Trolley_Position . Must have min value 0 and max value 3.
- * Destination_Trolley_Position compared with Postn_Trol_Register to see if higher or lower.
- * Destination_Trolley_Position variable must have first value accurate (e.g. always start at TubRimMax) 
- * Motor direction thusly determined. As motor runs, loop runs that checks for tape color transition 
- * (checks after every delay time, which is preset). If transition occurs, registers horizontal trolley 
- * position and stops if same as destination.
-*/
+// 
+// Incoming argument: Destination_ Trolley_Position . Must have min value 0 and max value 3.
+// Destination_Trolley_Position compared with Postn_Trol_Register to see if higher or lower.
+// Destination_Trolley_Position variable must have first value accurate (e.g. always start at TubRimMax) 
+// Motor direction thusly determined. As motor runs, loop runs that checks for tape color transition 
+// (checks after every delay time, which is preset). If transition occurs, registers horizontal trolley 
+// position and stops if same as destination.
+//
 
 void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
 
@@ -1056,7 +1089,7 @@ void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
   }
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  delay(1000);  //(Lets you see menu display after reaching destination); REMOVE AFTER
+//  delay(1000);  //(Lets you see menu display after reaching destination); REMOVE AFTER
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
   return;
@@ -1065,14 +1098,14 @@ void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
 
 //=======================================================================FUNCTION: setClawBlockVerticalPosition() =====================================================================
 
-/* 
- * Incoming argument: Destination_ Claw_Block_Position . Must have min value 0 and max value 2.
- * Destination_ Claw_Block_Position compared with Postn_ClBlk_Register to see if higher or lower.
- * Destination_ Claw_Block_Position must have first value accurate (e.g. always start at jib)  
- * Motor direction thusly determined. As motor runs, loop runs that checks for tape color transition 
- * (checks after every delay time, which is preset). If transition occurs, registers claw block 
- * position and stops if same as destination.
-*/
+// 
+// Incoming argument: Destination_ Claw_Block_Position . Must have min value 0 and max value 2.
+// Destination_ Claw_Block_Position compared with Postn_ClBlk_Register to see if higher or lower.
+// Destination_ Claw_Block_Position must have first value accurate (e.g. always start at jib)  
+// Motor direction thusly determined. As motor runs, loop runs that checks for tape color transition 
+// (checks after every delay time, which is preset). If transition occurs, registers claw block 
+// position and stops if same as destination.
+//
 
 void setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
 
@@ -1121,7 +1154,7 @@ void setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
   }
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  delay(3000);  //FOR TESTING ONLY (Lets you see menu display after reaching destination); REMOVE AFTER
+//  delay(3000);  //FOR TESTING ONLY (Lets you see menu display after reaching destination); REMOVE AFTER
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
   return;

@@ -19,12 +19,31 @@ void setup()
 void loop()
 {
 
-  LCD.clear();  LCD.home();
-  LCD.print("AnalPin0:");
-  LCD.print(analogRead(40));
+  LCD.clear();  
+  LCD.home();
+  LCD.print("IL");
+  LCD.print(digitalRead(8));
+  LCD.print(" IR");
+  LCD.print(digitalRead(9));
+  LCD.print(" OL");
+  LCD.print(digitalRead(10));
+  LCD.print(" OR");
+  LCD.print(digitalRead(11));
+
   LCD.setCursor(0,1);
-  LCD.print("DigiPin15:");
-  LCD.print(digitalRead(15));
+  LCD.print(" FL");
+  LCD.print(digitalRead(41));
+  LCD.print(" FR");
+  LCD.print(digitalRead(42));
+  LCD.print(" TR");
+  LCD.print(digitalRead(0));
+  LCD.print(" CB");
+  LCD.print(digitalRead(1));
+ 
+
+  
+
+
   
   delay(30);
 }

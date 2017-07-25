@@ -7,7 +7,10 @@
 
 
 // To do for one person (i.e. Pawel):
-//     -3. Make delays into constants
+//     -6. Reset at beginning: make it go to end, and all way up (i.e. have motor run thusly, briefly). Also, reset in between each retrieval, in case shit is fucked up.
+//     -5. Cut away wood where tape may hit
+//     -4. Determine whether need to send constant signal to servos so they dun sway while driving 
+//     -3. IF THEY'RE NEEDED, make delays into constants
 //     -2. Make IR gate code:
 		-Wait for low to high transition, and ensure get high signal for e.g. 50ms and if any low in there, interrupt
 //     -1. DO PWM FOR SLOWER SERVO TURNS <---ON WEEKEND
@@ -51,3 +54,13 @@ Concerns:
 	
 
 make cut lines: Q3
+
+
+
+********************************************************************************************
+DC motor speeds: Can have Well over 125 going up claw block motor speed. Try 170?
+
+If up speed, enlarge white space, make limiters, etc.
+
+Problems:
+1. Gets stuck in one of the early states: appraochIRgate and approachramp

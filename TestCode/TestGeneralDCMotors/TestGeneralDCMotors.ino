@@ -1,21 +1,23 @@
 #include <phys253.h>          
 #include <LiquidCrystal.h>     
 
-int Pin_Mot_0 = 0;
+int Pin_Mot_0 = 2;
 double Speed_Mot_0;
-int Pin_Mot_1 = 1;
+int Pin_Mot_1 = 3;
 double Speed_Mot_1;
 
 void setup()
 {  
   #include <phys253setup.txt>
   Serial.begin(9600);  
+  RCServo0.write(90);   //crane
+  RCServo1.write(40);   //agent grabber
 }
  
 void loop()
 {
 
-  Speed_Mot_1 = (double) ( (254 / 1023.0)*knob(7) - 127 );
+  Speed_Mot_1 = (double) ( (254 / 1023.0)*knob(7) - 127 );    //MAX SPEEDS ARE HALVED TO NOT DESTORY MOTORS
   Speed_Mot_0 = (double) ( (254 / 1023.0)*knob(6) - 127 );
 
   motor.speed(Pin_Mot_0, Speed_Mot_0);
@@ -24,10 +26,10 @@ void loop()
   LCD.clear();
   LCD.home();
   LCD.setCursor(0, 0);
-  LCD.print("M0Spd:");
+  LCD.print("Trol:");
   LCD.print(Speed_Mot_0);
   LCD.setCursor(0, 1);
-  LCD.print("M1Spd:");
+  LCD.print("CB:");
   LCD.print(Speed_Mot_1);
   
   delay(30);
