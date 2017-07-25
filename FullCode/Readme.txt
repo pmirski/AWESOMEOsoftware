@@ -1,12 +1,15 @@
 // Nota bene:
 //    0. All code in one file because remains ready for one-big-case conversion
-//    1. RESET AFTER EVERY TEST; Variable values do not reset. Many initial values important.
+//    1. RESET AFTER EVERY TEST; otherwise variable values do not reset. Many initial values important.
 		e.g.	Postn_Trol_Register & Postn_ClBlk_Register must initially be 0.
 //    2. Trolley (at tower), ClawBlock (at jib), and Claw (open) position values are initially 0. 
 //    3. Global variable motorspeed changes. But initialized just below it is reset.
 
 
 // To do for one person (i.e. Pawel):
+//     -9. Ensure that this gets you to Line1, from where you wanna take off
+//     -8. If claw is mashing agents' heads during retrieval, implement Jakes come-in-2-pick-up idea
+//     -7. Ensure all code symmetrical re: platforms
 //     -6. Reset at beginning: make it go to end, and all way up (i.e. have motor run thusly, briefly). Also, reset in between each retrieval, in case shit is fucked up.
 //     -5. Cut away wood where tape may hit
 //     -4. Determine whether need to send constant signal to servos so they dun sway while driving 
@@ -16,12 +19,12 @@
 //     -1. DO PWM FOR SLOWER SERVO TURNS <---ON WEEKEND
 //	0. GO THRU CODE AND READ/DO ALL TO-DO'S IN COMMENTS
 //	1. Determine exact servo angle values for: all 2or3 crane angles, all 2or3 claw angles
-//	2. Determine length of time to wait for servo to complete action (i.e. close/pivot)
-//	3. Determine lengths of all delays, ensure ones that are testing only are marked so that excised for final robot
 //	4. Determine HOR and VERT motor speeds sufficient to get QRD well into white tape territory; transition zones results in poor hi/lo voltage readings.
 // 	5. Concern about HOR and VERT going off white tape while other functions perform:
 		-MAYBE: Have HOR or VER continually floating between black and white and code 
 		-MAYBE: Make white spaces wide if can
+			JAKE'S IDEA: LIMITER/RESET SWITCHES.
+			Do those need to be interrupts?
 
 // To do as team:
 //	1. Determine protocol for getting agents (e.g. Repeat condition? (i.e. 2nd search if unsuccessful first time? Currently single attempt))
@@ -30,7 +33,6 @@
 // To do but LessImportant: 
 //	A. Ensure have correct function descriptions
 //	B. take away initialization values for vars with comment "Initialization value completely arbitrary"
-//	C. Try changing "postn" to "pos" at end
 
 
 // Things just for testing (remove later?): 
@@ -62,5 +64,5 @@ DC motor speeds: Can have Well over 125 going up claw block motor speed. Try 170
 
 If up speed, enlarge white space, make limiters, etc.
 
-Problems:
-1. Gets stuck in one of the early states: appraochIRgate and approachramp
+To make symmetrical:
+State_AprchCircle, Crane retrieval angle(s), State_AprchEdge, State_EdgeSense + edgeSense(), exiting circle IF you read entrance line, 

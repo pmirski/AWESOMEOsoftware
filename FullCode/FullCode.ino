@@ -39,11 +39,16 @@ int NumOfAgentsSaved = 0;                       // Number of agents in possessio
 int Black_Tape = 1;                             // Used to determine whether trolley and claw block sensors read white or black tape
 int White_Tape = 0;                             // See Black_Tape comment
 
+int Pin_Mot_Wheels_L = 0;
+int Pin_Mot_Wheels_R = 1;
+
 unsigned long Time_BegngOfHeat;                           // Keeps track of time since beginning of heat
 unsigned long Time_BeginWetRtrvls = 60000;                // After 1 minute, only wet retrievals are possible! (vs. dry retrievals)
 
 int Snsr_Chassis_FrontCrnrR = 0;                // Initialization value completely arbitrary 
 int Pin_Snsr_Chassis_FrontCrnrR = 42;
+int Snsr_Chassis_FrontCrnrL = 0;                // Initialization value completely arbitrary 
+int Pin_Snsr_Chassis_FrontCrnrL = 41;
 int ANALOGTHRESHOLD = 400;                      // Used to utilize side-of-chassis sensors as if digital input re: sensing tape
 
 
@@ -59,14 +64,14 @@ int State_Go2IRGate = 1;
 int State_Wait4IRBeacon = 2;  
     int Snsr_IR; 
     int Pin_Snsr_IR = 9999;                   // TO DO:  Change when know if using. Random numbers right now! 
-    boolean GoSignal;                         // Indicates signal from IR PCB. 
+    boolean GoFrequency;                         // Indicates signal from IR PCB. 
 
 int State_ApprchRamp = 3;  
     unsigned long Time_WhenTimerWasLastRead = 0;
-    unsigned long Time_ApprchRamp = 3500;             // TO TEST: determine this!!! Right now: 5 seconds. In milliseconds.             
+    unsigned long Time_ApprchRamp = 3500;            
 
 int State_GoUpRamp = 4;   
-    unsigned long Time_GoUpRamp = 1500;               // TO TEST: determine this!!! 
+    unsigned long Time_GoUpRamp = 1500;
     int Mot_Wheels_Speed_Ramp = 200;
 
 int State_AprchCircle = 5;
@@ -89,12 +94,7 @@ int State_Retrvl = 8;
     int WetRetrieval = 1;
     int DryRetrieval = 0;
 
-int State_Go2ZipLine = 9;
-    int Pin_Snsr_ZiplineArrival = 2;              // Pin on TINAH. As per TINAH log
-    int Snsr_ZiplineArrival = 9999999;            // TO DO:  Change when know if using. Random numbers right now!
-    int Postn_Robot_UnderZL = 1;                  // TO DO: Arbitrary until know what it needs to be re: sensor reading once zipline trips sensor
-
-int State_RaisePltfrm = 10;
+int State_RaisePltfrm = 9;
     int Pin_Mot_Pltfrm = 2;                       // Pin on TINAH. As per TINAH log (same as Mot_Trol)
     int Mot_Pltfrm_Speed_Up = 100;                // TO TEST: Arbitrary until know what speed is good
     int Mot_Pltfrm_Speed_Down = 40;               // TO TEST: Arbitrary until know what speed is good
@@ -103,15 +103,15 @@ int State_RaisePltfrm = 10;
     int Postn_Pltfrm_AtBtm = 0;                   // TO DO: Might switch re: sensor reading values
     int Postn_Pltfrm_AtZL = 1;                    // TO DO: Might switch re: sensor reading values
 
-int State_Hook2ZL = 11;
-  int Postn_Hook_NotAtZL = 0;                     // TO DO: Might switch re: sensor reading values       
-  int Postn_Hook_AtZL = 1;                        // TO DO: Might switch re: sensor reading values
-  int Postn_Hook_Register = Postn_Hook_NotAtZL;   // TO DO: Initial value
-  int Pin_Mot_Hook = 9999999;                     // TO DO: Arbitrary until know what it needs to be
-  int Mot_Hook_Speed = 999999999;                 // TO DO: Arbitrary until know what it needs to be
-  int Pin_Snsr_Hook = 9999999;                    // TO DO: Arbitrary until know what it needs to be
+int State_ApprchEdge = 10;
+
+int State_EdgeSense = 11;
+    int Pin_Snsr_ZiplineArrival = 2;              // Pin on TINAH. As per TINAH log
+    int Snsr_ZiplineArrival = 9999999;            // TO DO:  Change when know if using. Random numbers right now!
+    int Postn_Robot_UnderZL = 1;                  // TO DO: Arbitrary until know what it needs to be re: sensor reading once zipline trips sensor
 
 int State_LowerPltfrm = 12;
+  unsigned long Time_LowerPltfrm = 1500;          // TO TEST: determine this!!! 
 
 
 //=======================================================================VARIABLES: FOR FUNCTION driveWheels()==========================================
@@ -123,9 +123,6 @@ int Drive_Correction = 0;               // Initialization value, keep at 0.
 int Drive_Error = 0;                    // Initialization value, keep at 0.
 int Drive_DerivError = 0;               // Initialization value, keep at 0.
 int Drive_LastError = 0;                // Initialization value, keep at 0.
-
-int Pin_Mot_Wheels_L = 0;
-int Pin_Mot_Wheels_R = 1;
 
 int Snsr_Drive_FrontInL = 0;            // Initialization value completely arbitrary 
 int Pin_Snsr_Drive_FrontInL = 8;
@@ -141,6 +138,24 @@ int Pin_Snsr_Drive_FrontOutR = 11;
 
 // USED ONLY FOR TESTING driveWheels() to display menu
 int count = 0;
+
+
+//=======================================================================VARIABLES: FOR FUNCTION edgeSense()==========================================
+
+/*
+ * FOR AN EDGE SENSOR ON THE FRONT RIGHT CORNER OF THE ROBOT
+ * High sensor readings correcct to the left; low sensor readings correct to the right
+ * Positive EdgeSense_Error = left correction; Negative EdgeSense_Error = right correction
+ */
+
+int EdgeSense_Error = 0;              // U
+int EdgeSense_Counter = 0;            // Used for display in function
+
+int EdgeSense_WHITE_SURFACE = 100;    // TO DO: ENSURE CORRECT VALUE
+int EdgeSense_MID_POINT = 400;        // TO DO: ENSURE CORRECT VALUE
+int EdgeSense_OVER_EDGE = 800;        // TO DO: ENSURE CORRECT VALUE
+int EdgeSense_M_CORRECT = 0;          // medium correction
+int EdgeSense_H_CORRECT = 0;          // hard corretion
 
 
 //=======================================================================VARIABLES: FOR FUNCTION setTrolleyHorizontalPosition==========================================
@@ -320,15 +335,15 @@ void loop()
     }
 
   //while the gate is closed, continue to wait
-  while(!GoSignal){
-    delay(5)
+  while(!GoFrequency){
+    delay(5);
     //if a go signal is detected, sample the signal continuously for some time to ensure the signal is staying high before going
-    if(GoSignal){
+    if(GoFrequency){
       unsigned long transition = millis();
       unsigned long sample_time = 50;
       while(millis() - transition < sample_time){
         //if signal switches to no go at any time during sample period, give control back to the parent loop to look for the next go signal
-        if(!GoSignal){
+        if(!GoFrequency){
           break;
         }
       }
@@ -587,31 +602,13 @@ void loop()
   LCD.home();   
   LCD.print("State_AprchNextLine");
 
-  doAprchNextLine();
-
-
-  State_Register = State_Go2ZipLine;
-
-  LCD.clear();  
-  LCD.home();   
-  LCD.print("State_Go2ZipLine");
-
-  //=======================================================================State_Go2ZipLine
-
-  //
-  // Robot drives forward until zipline_arrival sensor is triggered
-  //
-
-  while(digitalRead(Pin_Snsr_ZiplineArrival) != Postn_Robot_UnderZL ){
-    motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed*(-1));
-    motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed);
-  }
+  doAprchNextLine();                    // TO DO: ensure that this gets you to Line1, from where you wanna take off
 
   State_Register = State_RaisePltfrm;
 
   LCD.clear();  
   LCD.home();   
-  LCD.print("State_Go2ZipLine");
+  LCD.print("State_RaisePltfrm");
 
   //=======================================================================State_RaisePltfrm
 
@@ -621,23 +618,39 @@ void loop()
   }
 
   motor.speed(Pin_Mot_Pltfrm, Mot_Speed_Stop);
-   
-  State_Register = State_Hook2ZL;
+
+  State_Register = State_ApprchEdge;
 
   LCD.clear();  
   LCD.home();   
-  LCD.print("State_Hook2ZL");
+  LCD.print("State_ApprchEdge");
 
+  //=======================================================================State_ApprchEdge
 
-  //=======================================================================State_Hook2ZL
+  //
+  // Robot drives forward until edge arrival sensor is triggered
+  //
 
-  while(Postn_Hook_Register != Postn_Hook_AtZL) {
-    motor.speed(Pin_Mot_Hook, Mot_Hook_Speed);
-    Postn_Hook_Register = digitalRead(Pin_Snsr_Hook);
+  while(analogRead(Pin_Snsr_ZiplineArrival) < EdgeSense_MID_POINT  ){
+    motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed);
+    motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed);
   }
 
-  motor.speed(Pin_Mot_Hook, Mot_Speed_Stop);
+  State_Register = State_EdgeSense;
 
+  LCD.clear();
+  LCD.home();
+  LCD.print("State_EdgeSense");
+
+
+  //=======================================================================State_EdgeSense
+
+edgeSense();
+
+  //
+
+
+   
   State_Register = State_LowerPltfrm;
 
   LCD.clear();  
@@ -647,16 +660,13 @@ void loop()
 
   //=======================================================================State_LowerPltfrm
 
-  while(Postn_Pltfrm_Register != Postn_Pltfrm_AtBtm) {
+  Time_WhenTimerWasLastRead = millis();
+
+  while( !( millis() > (Time_WhenTimerWasLastRead + Time_LowerPltfrm) ) ){ 
     motor.speed(Pin_Mot_Pltfrm, Mot_Pltfrm_Speed_Down);
-    Postn_Pltfrm_Register = digitalRead(Pin_Snsr_Pltfrm);
   }
 
   motor.speed(Pin_Mot_Pltfrm, Mot_Speed_Stop);
-
-
-
-
 
 
 
@@ -922,6 +932,52 @@ void driveWheels() {
 }
 
 
+
+//=======================================================================FUNCTION:  edgeSense()=====================================================================
+//
+// FOR AN EDGE SENSOR ON THE FRONT RIGHT CORNER OF THE ROBOT
+// High sensor readings correcct to the left; low sensor readings correct to the right
+// Positive EdgeSense_Error = left correction; Negative EdgeSense_Error = right correction
+//
+
+void edgeSense() {
+  
+  Snsr_Chassis_FrontCrnrR = analogRead(Pin_Snsr_Chassis_FrontCrnrR);
+  Snsr_Chassis_FrontCrnrL = analogRead(Pin_Snsr_Chassis_FrontCrnrL);
+    
+  EdgeSense_Counter++;
+
+  if(EdgeSense_Counter %300 == 0){
+    LCD.clear();
+    LCD.home();
+    LCD.setCursor(0, 0);
+    LCD.print("Sensor: ");
+    LCD.print(Snsr_Chassis_FrontCrnrR);
+  }
+
+  //medium corrections
+  if(Snsr_Chassis_FrontCrnrR > EdgeSense_WHITE_SURFACE && Snsr_Chassis_FrontCrnrR <= EdgeSense_MID_POINT){
+    EdgeSense_Error = -1*EdgeSense_M_CORRECT;
+  }
+  if(Snsr_Chassis_FrontCrnrR > EdgeSense_MID_POINT && Snsr_Chassis_FrontCrnrR < EdgeSense_OVER_EDGE){
+    EdgeSense_Error = EdgeSense_M_CORRECT;
+  }
+
+  //hard corrections
+  if(Snsr_Chassis_FrontCrnrR <= EdgeSense_WHITE_SURFACE){
+    EdgeSense_Error = -1*EdgeSense_H_CORRECT;
+  }
+  if(Snsr_Chassis_FrontCrnrR >= EdgeSense_OVER_EDGE){  
+    EdgeSense_Error = EdgeSense_H_CORRECT;
+  }
+  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed - EdgeSense_Error);     // TO DO: ENSURE CORRECT VALUE re: +/-
+  motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed + EdgeSense_Error);     // TO DO: ENSURE CORRECT VALUE re: +/-
+  
+}
+
+
+
 //=======================================================================FUNCTION: doAprchNextLine() =====================================================================
 //
 //No arguments. Simply approaches next line and, upon sensing, continues for Time_AfterReadLineToStop before stopping robot.
@@ -940,6 +996,8 @@ void doAprchNextLine() {
 
 }
 
+
+
 //=======================================================================FUNCTION: informIfWetOrDryRtrvl() =====================================================================
 // 
 // Keeps track of time since beginning of heat. Returns whether or not it's time for wet retrievals.
@@ -955,6 +1013,7 @@ int informIfWetOrDryRtrvl() {
     }
 
 }
+
 
 
 //=======================================================================FUNCTION: setCranePosition() =====================================================================
