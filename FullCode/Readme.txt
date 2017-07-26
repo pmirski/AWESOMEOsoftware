@@ -7,6 +7,8 @@
 
 
 // To do for one person (i.e. Pawel):
+//    -11. ENSURE NOT SPEEDING UP JUST BEFORE RAMP ENTER (RE: WALLFUCK)
+//    -10. At/approaching IR gate: Consider sensing earlier to maybe save time
 //     -9. Ensure that this gets you to Line1, from where you wanna take off
 //     -8. If claw is mashing agents' heads during retrieval, implement Jakes come-in-2-pick-up idea
 //     -7. Ensure all code symmetrical re: platforms
