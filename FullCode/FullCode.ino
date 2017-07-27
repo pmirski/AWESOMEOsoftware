@@ -68,7 +68,7 @@ int State_Go2IRGate = 1;
 int State_Wait4IRBeacon = 2;  
     int Snsr_IR; 
     int Pin_Snsr_IR = 9999;                   // TO DO:  Change when know if using. Random numbers right now! 
-    boolean GoSignal;                         // Indicates signal from IR PCB. 
+    boolean GoSignal;                         // Indicates signal from IR PCB. 0 = 1kHz, 1 = 10kHz
 
 int State_ApprchRamp = 3;  
     unsigned long Time_WhenTimerWasLastRead = 0;
@@ -237,7 +237,8 @@ int Postn_Crane_Destntn = 0;            // Values correspond to those of Postn_C
 int Postn_Crane_AngleBot = 90;          // TO DO: ASCERTAIN THIS VALUE IS CORRECT
 int Postn_Crane_AngleTubLineStd = 30;   // TO DO: ASCERTAIN THIS VALUE IS CORRECT   //TO DO: MAKE Pin_Snsr_Chassis_FrontCrnrR SYMMETRICAL
 int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to the 3 position variables (0,70,90). User must choose initialization value. (First position: ClawOpen)
-int Postn_Crane_FarRight = 178;
+int Postn_Crane_FarRight = 178; 
+int Postn_Crane_IRMakeWay = 105;        //TO DO: MAKE Postn_Crane_IRMakeWay SYMMETRICAL
 
 
 //*****************************************************************************************************************************************************************************
@@ -350,23 +351,25 @@ void loop()
     }    
   }
 
+                            
+
   selectSurface(Surface_Register);
 
-/*
+
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow);
-  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
-  setTrolleyHorizontalPosition(Postn_Trol_MaxExtnsn);
-  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
-  setTrolleyHorizontalPosition(Postn_Trol_TubRimMax);
-  setClawBlockVerticalPosition(Postn_ClBlk_AtWater);
-  LCD.clear();
-  LCD.home();
-  LCD.print("Done test.");
-  delay(360000);
+//  RetrievalType = informIfWetOrDryRtrvl();
+//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow);
+//  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
+//  setTrolleyHorizontalPosition(Postn_Trol_MaxExtnsn);
+//  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
+//  setTrolleyHorizontalPosition(Postn_Trol_TubRimMax);
+//  setClawBlockVerticalPosition(Postn_ClBlk_AtWater);
+//  LCD.clear();
+//  LCD.home();
+//  LCD.print("Done test.");
+//  delay(360000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-*/
+
 
 
 
@@ -402,18 +405,16 @@ void loop()
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-    LCD.clear();
-    LCD.home();
-    LCD.print("State_Wait4IRBeacon");
-    LCD.setCursor(0,1);
-    LCD.print("Waiting! ;-P");
-    motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
-    motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);    
-    delay(5000);
+//    LCD.clear();
+//    LCD.home();
+//    LCD.print("State_Wait4IRBeacon");
+//    LCD.setCursor(0,1);
+//    LCD.print("Waiting! ;-P");
+//    motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+//    motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);    
+//    delay(5000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
-
-/*
 
   //
   // TO DO:     Wait for low to high transition, and ensure get high signa by, for maybe ~50ms (choose time), see if any high-to-low transitions occu. In that case, 
@@ -424,14 +425,20 @@ void loop()
   //
 
 
-  //full stop in front of IR gate
+  //full stop in front of IR gate and crane out of way
   motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
   motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  setCranePosition(Postn_Crane_IRMakeWay);
+
+
+
+  GoSignal = !digitalRead(A0);
   
   //If when you first start sensing for IR signal, the gate is open, just wait this one out. To risky to try to make it through without knowing how long the gate has already been open
   // TO DO: Consider sensing earlier to maybe save time
   while(Snsr_IR == GoSignal){
     //wait here
+    GoSignal = !digitalRead(A0);
   }
 
   //while the gate is closed, continue to wait
@@ -446,12 +453,14 @@ void loop()
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
     
     delay(5);
+    GoSignal = !digitalRead(A0);
     //if a go signal is detected, sample the signal continuously for some time to ensure the signal is staying high before going
     if(GoSignal){
       unsigned long transition = millis();
       unsigned long sample_time = 50;
       while(millis() - transition < sample_time){
         //if signal switches to no go at any time during sample period, give control back to the parent loop to look for the next go signal
+        GoSignal = !digitalRead(A0);
         if(!GoSignal){
           break;
         }
@@ -459,18 +468,19 @@ void loop()
     }
   }
    
+  setCranePosition(Postn_Crane_AngleBot);
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-    LCD.clear();
-    LCD.home();
-    LCD.print("State_Wait4IRBeacon");
-    LCD.setCursor(0,1);
-    LCD.print("OUT OF LOOP");
-    delay(5000);  //NOTE THIS DELAY
+//    LCD.clear();
+//    LCD.home();
+//    LCD.print("State_Wait4IRBeacon");
+//    LCD.setCursor(0,1);
+//    LCD.print("OUT OF LOOP");
+//    delay(5000);  //NOTE THIS DELAY
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
-*/
+
 
   State_Register = State_ApprchRamp;
 
@@ -629,22 +639,42 @@ void loop()
 
 
 /*            //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
- 
- while (!startbutton()) {
-    RCServo0.write( ( (double) (180.0 / 1023.0))*knob(6));
-    LCD.clear();
-    LCD.home();
-    LCD.setCursor(0, 0);
-    LCD.print("Crane:");
-    LCD.print( ( (double) (180.0 / 1023.0))*knob(6));
+            //Test claw block speed for this test code block
+            int TestCBSpeed = 0;
 
-    int  Speed_Mot_0 = (double) ( (254 / 1023.0)*knob(6) - 127 );
-    motor.speed(2, Speed_Mot_0);
-    LCD.setCursor(0, 1);
-    LCD.print("Trol:");
-    LCD.print(Speed_Mot_0);
-    delay(30);
- }
+            while (!startbutton()) {
+            
+            //Control crane angle & trolley speed
+                RCServo0.write( ( (double) (180.0 / 1023.0))*knob(6));      
+                LCD.clear();
+                LCD.home();
+                LCD.setCursor(0, 0);
+                LCD.print("Crn:");
+                LCD.print( ( (double) (180.0 / 1023.0))*knob(6));
+
+                int  Speed_Mot_0 = (double) ( (254 / 1023.0)*knob(6) - 127 );
+                motor.speed(2, Speed_Mot_0);
+                LCD.print("Tr:");
+                LCD.print(Speed_Mot_0);
+
+            //Control CB speed
+                LCD.setCursor(0, 1);
+                LCD.print("CB:");
+                LCD.print(TestCBSpeed);
+
+                while (startbutton()){
+                  TestCBSpeed = TestCBSpeed + 10;
+                  delay(100);
+                }
+  
+                while (stopbutton()){
+                  TestCBSpeed = TestCBSpeed - 10;
+                  delay(100);
+                }
+      
+                delay(30);
+                
+            }
              //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 */
 
@@ -658,7 +688,7 @@ void loop()
 
   //At Line 2
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium);
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium, Postn_Trol_MaxExtnsn);
   
   State_Register = State_AprchNextLine;
 
@@ -684,7 +714,7 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh);          //TO DO: CHANGED TO HIGH, ENSURE THIS IS GOOD
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh, Postn_Trol_MaxExtnsn);          //TO DO: CHANGED TO HIGH/ENSURE THIS IS GOOD
   
   State_Register = State_AprchNextLine;
 
@@ -702,7 +732,7 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh);
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh, Postn_Trol_MaxExtnsn);
   
   State_Register = State_AprchNextLine;
 
@@ -720,7 +750,7 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium);
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium, Postn_Trol_MaxExtnsn);
   
   State_Register = State_AprchNextLine;
 
@@ -739,7 +769,7 @@ void loop()
 
   // At Line1
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow);
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);
   
   State_Register = State_AprchNextLine;
 
@@ -748,6 +778,9 @@ void loop()
   LCD.print("State_AprchNextLine");
 
   doAprchNextLine();                    // TO DO: ensure that this gets you to Line1, from where you wanna take off
+
+
+
 
   State_Register = State_RaisePltfrm;
 
@@ -830,6 +863,7 @@ void loop()
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
 
+
 }
 
 
@@ -852,19 +886,14 @@ void loop()
 // Function meant to be called when tower-base aligned with  is at one of lines . Function calls other functions.
 // Last function call (& argument): Trolley ends at max extension.
 
-void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
+void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Trol_EnterExitTub) {
   int FXN_Trol_Destntn;
   int FXN_Crane_Destntn;
   int FXN_Claw_Destntn;
 
 
-  if(FXN_RetrievalType == DryRetrieval){
-  FXN_Trol_Destntn = Postn_Trol_OverDryAgent;
-  }
-  else {
-  FXN_Trol_Destntn = Postn_Trol_MaxExtnsn;
-  }
 
+  FXN_Trol_Destntn = FXN_Postn_Trol_EnterExitTub;
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
   LCD.home();
@@ -875,11 +904,26 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.print(Postn_Trol_Register);
 //  delay(2000);                  
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  
   setTrolleyHorizontalPosition(FXN_Trol_Destntn);
 
-  FXN_Crane_Destntn = Postn_Crane_AngleTubLineStd;                            //TO DO: MAKE this valuation SYMMETRICAL
 
+
+  FXN_Claw_Destntn = Mot_Claw_Angle_Open;
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("ClDestO:");
+  LCD.print(FXN_Claw_Destntn);
+  LCD.setCursor(0,1);
+  LCD.print("ClRegO:");
+  LCD.print(Postn_Claw_Register);
+//  delay(2000);
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  setClawPosition(FXN_Claw_Destntn);
+
+
+
+  FXN_Crane_Destntn = Postn_Crane_AngleTubLineStd;                            //TO DO: MAKE this valuation SYMMETRICAL
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
   LCD.home();
@@ -887,14 +931,78 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.print(FXN_Crane_Destntn);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-
-  
   setCranePosition(FXN_Crane_Destntn);
 
 
 
-  FXN_Trol_Destntn = Postn_Trol_MaxExtnsn;
+  if(FXN_RetrievalType == WetRetrieval){
+    FXN_ClBlk_Destntn = Postn_ClBlk_AtWater;
+  }
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("CBDestO:");
+  LCD.print(FXN_ClBlk_Destntn);
+  LCD.setCursor(0,1);
+  LCD.print("CBRegO:");
+  LCD.print(Postn_ClBlk_Register);
+//  delay(2000);
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  setClawBlockVerticalPosition(FXN_ClBlk_Destntn);
 
+
+
+  FXN_Trol_Destntn = Postn_Trol_OverDryAgent;          //Trolley ends at Postn_Trol_OverDryAgent
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("TrolDestO:");
+  LCD.print(FXN_Trol_Destntn);  
+  LCD.print("TrolRegO:");
+  LCD.print(Postn_Trol_Register);
+//  delay(2000);
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK 
+  setTrolleyHorizontalPosition(FXN_Trol_Destntn);
+
+
+//  COMMENTED OUT: NO WATER RETRIEVAL YET
+//  if(FXN_RetrievalType == WetRetrieval){
+//    FXN_Trol_Destntn = Postn_Trol_OverDryAgent;                     //TO DO, CONFIRM THIS
+//    setTrolleyHorizontalPosition(FXN_Trol_Destntn);      
+//  }
+
+  
+  FXN_Claw_Destntn = Postn_Claw_Close;
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("ClDestO:");
+  LCD.print(FXN_Claw_Destntn);
+  LCD.setCursor(0,1);
+  LCD.print("ClRegO:");
+  LCD.print(Postn_Claw_Register);
+//  delay(2000);
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  setClawPosition(FXN_Claw_Destntn);
+
+
+
+  FXN_ClBlk_Destntn = Postn_ClBlk_AtJib;
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("CBDestO:");
+  LCD.print(FXN_ClBlk_Destntn);
+  LCD.setCursor(0,1);
+  LCD.print("CBRegO:");
+  LCD.print(Postn_ClBlk_Register);
+//  delay(2000);
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  setClawBlockVerticalPosition(FXN_ClBlk_Destntn);
+
+
+
+  FXN_Trol_Destntn = FXN_Postn_Trol_EnterExitTub;
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
   LCD.home();
@@ -905,71 +1013,11 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.print(Postn_Trol_Register);
 //  delay(2000);                  
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  
   setTrolleyHorizontalPosition(FXN_Trol_Destntn);
 
 
 
-  if(FXN_RetrievalType == WetRetrieval){
-    FXN_ClBlk_Destntn = Postn_ClBlk_AtWater;
-  }
-
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  LCD.clear();
-  LCD.home();
-  LCD.print("CBDestO:");
-  LCD.print(FXN_ClBlk_Destntn);
-  LCD.setCursor(0,1);
-  LCD.print("CBRegO:");
-  LCD.print(Postn_ClBlk_Register);
-//  delay(2000);
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-
-  
-  setClawBlockVerticalPosition(FXN_ClBlk_Destntn);
-
-  if(FXN_RetrievalType == WetRetrieval){
-    FXN_Trol_Destntn = Postn_Trol_OverDryAgent;                     //TO DO, CONFIRM THIS
-    setTrolleyHorizontalPosition(FXN_Trol_Destntn);      
-  }
-
-
-  FXN_Claw_Destntn = Postn_Claw_Close;
-
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  LCD.clear();
-  LCD.home();
-  LCD.print("ClDestO:");
-  LCD.print(FXN_Claw_Destntn);
-  LCD.setCursor(0,1);
-  LCD.print("ClRegO:");
-  LCD.print(Postn_Claw_Register);
-//  delay(2000);
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-
-  
-  setClawPosition(FXN_Claw_Destntn);
-
-
-  FXN_ClBlk_Destntn = Postn_ClBlk_AtJib;
-
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  LCD.clear();
-  LCD.home();
-  LCD.print("CBDestO:");
-  LCD.print(FXN_ClBlk_Destntn);
-  LCD.setCursor(0,1);
-  LCD.print("CBRegO:");
-  LCD.print(Postn_ClBlk_Register);
-//  delay(2000);
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-
-  
-  setClawBlockVerticalPosition(FXN_ClBlk_Destntn);
-
-
   FXN_Crane_Destntn = Postn_Crane_AngleBot;
-
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
   LCD.home();
@@ -977,12 +1025,11 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.print(FXN_Crane_Destntn);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  
   setCranePosition(FXN_Crane_Destntn);
 
 
-  FXN_Trol_Destntn = Postn_Trol_OverBasket;
 
+  FXN_Trol_Destntn = Postn_Trol_OverBasket;
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
   LCD.home();
@@ -992,11 +1039,11 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.print(Postn_Trol_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-   
   setTrolleyHorizontalPosition(FXN_Trol_Destntn);
 
-  FXN_Claw_Destntn = Mot_Claw_Angle_Open;
 
+
+  FXN_Claw_Destntn = Mot_Claw_Angle_Open;
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
   LCD.home();
@@ -1007,25 +1054,12 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   LCD.print(Postn_Claw_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  
   setClawPosition(FXN_Claw_Destntn);
 
 
-  FXN_Trol_Destntn = Postn_Trol_OverDryAgent;          //Trolley ends at Postn_Trol_OverDryAgent
-
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  LCD.clear();
-  LCD.home();
-  LCD.print("TrolDestO:");
-  LCD.print(FXN_Trol_Destntn);  
-  LCD.print("TrolRegO:");
-  LCD.print(Postn_Trol_Register);
-//  delay(2000);
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-   
-  setTrolleyHorizontalPosition(FXN_Trol_Destntn);
 
   return;
+  
 }
 
 
@@ -1464,8 +1498,7 @@ void resetClawBlockVerticalPosition(){
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
       LCD.clear();  
       LCD.home();
-      LCD.print("IN CB RESET");
-      delay(5000);
+      LCD.print("Was inCBReset");
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
 }

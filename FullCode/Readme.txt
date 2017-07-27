@@ -1,8 +1,3 @@
-General:
-1) PROBLEM: SWITCHES THAT ARE GLUED ON: WILL FALL OFF (TROL, CB)
-2) PROBLEM: no extra wheels, ready to go for immeditate replacement, if/when current ones thread out
-
-
 // Nota bene:
 //    0. All code in one file because remains ready for one-big-case conversion
 //    1. RESET AFTER EVERY TEST; otherwise variable values do not reset. Many initial values important.
@@ -12,7 +7,7 @@ General:
 
 
 // To do for one person (i.e. Pawel):
-
+//    -12. OPEN ANGLE IS CURRENTLY NOT TOTALLY OPEN; CHANGE FOR WATER RETRIEVAL
 //    -11. ENSURE NOT SPEEDING UP JUST BEFORE RAMP ENTER (RE: WALLFUCK)
 //    -10. At/approaching IR gate: Consider sensing earlier to maybe save time
 //     -9. Ensure that this gets you to Line1, from where you wanna take off
@@ -63,16 +58,31 @@ Concerns:
 		MAYBE: 	Clamp downward
 	
 
-make cut lines: Q3
-
-********************************************************************************************
+*********************************CONCERN SANDBOX*******************************************
 -DC motor speeds: Can have Well over 125 going up claw block motor speed. Try 170?
 
 -If up speed, enlarge white space, make limiters, etc.
 
--LIMIT SWITCHES ARE GLUED ON; EPOXY THEM!!! (CB and TROL)
-
 -To make symmetrical:
 State_AprchCircle, Crane retrieval angle(s), State_AprchEdge, State_EdgeSense + edgeSense(), exiting circle IF you read entrance line, 
 
+
+Added Thu: 
+Right now (1pm):		note: ensure water retrieval l8r
+	0. TR: enter/exit  	argument
+		Agent2: MaxExtensn
+		Agent3: MaxExtensn	
+		Agent4: MaxExtensn	
+		Agent5: MaxExtensn  QUESTIONABLE
+		Agent6: MaxExtensn  QUESTIONABLE
+	1. Claw open
+	3. Crane tub angle
+	5. CB goes to input 	argument
+	5.5. TR over dry agent
+	6. Claw close
+	7. CB to jib
+	7.5 TR: enter/exit  	argument
+	8. Crane over bot
+	9. TR over basket
+	10. Claw open
 
