@@ -1,15 +1,14 @@
 General:
-1) PROBLEM: SWITCHES THAT ARE GLUED ON: WILL FALL OFF
+1) PROBLEM: SWITCHES THAT ARE GLUED ON: WILL FALL OFF (TROL, CB)
 2) PROBLEM: no extra wheels, ready to go for immeditate replacement, if/when current ones thread out
 
 
 // Nota bene:
 //    0. All code in one file because remains ready for one-big-case conversion
 //    1. RESET AFTER EVERY TEST; otherwise variable values do not reset. Many initial values important.
-		e.g.	Postn_Trol_Register & Postn_ClBlk_Register must initially be 0.
 //    2. Trolley (at end (BUT SWITCH CANNOT BE DEPRESSED OR WILL NEVER MOVE), ClawBlock (at jib), and Claw (open) position values are initially 0. 
 //    3. Global variable motorspeed changes. But initialized just below it is reset.
-//    4. 
+//    4. currently, must have clawblock in lowest position, and TROL AT END WITHOUT SWITCH DPRESSED (here it matters)
 
 
 // To do for one person (i.e. Pawel):
@@ -66,12 +65,14 @@ Concerns:
 
 make cut lines: Q3
 
-
-
 ********************************************************************************************
-DC motor speeds: Can have Well over 125 going up claw block motor speed. Try 170?
+-DC motor speeds: Can have Well over 125 going up claw block motor speed. Try 170?
 
-If up speed, enlarge white space, make limiters, etc.
+-If up speed, enlarge white space, make limiters, etc.
 
-To make symmetrical:
+-LIMIT SWITCHES ARE GLUED ON; EPOXY THEM!!! (CB and TROL)
+
+-To make symmetrical:
 State_AprchCircle, Crane retrieval angle(s), State_AprchEdge, State_EdgeSense + edgeSense(), exiting circle IF you read entrance line, 
+
+

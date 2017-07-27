@@ -72,7 +72,7 @@ int State_Wait4IRBeacon = 2;
 
 int State_ApprchRamp = 3;  
     unsigned long Time_WhenTimerWasLastRead = 0;
-    unsigned long Time_ApprchRamp = 4000;            //~14.5V: 4000
+    unsigned long Time_ApprchRamp = 5000;            //~14.5V: 4000
 
 int State_GoUpRamp = 4;   
     unsigned long Time_GoUpRamp = 2500;              //~14.5V: 2500
@@ -175,7 +175,7 @@ int Pin_Switch_Trol = 2;
   int Pin_Switch_Trol_Pressed = 0;       //0 is hi for limit switches
   int Pin_Switch_Trol_Unpressed = 1;
 int Pin_Mot_Trol = 2;             // Pin on TINAH. As per TINAH log (same as Mot_Pltfrm)
-int Mot_Trol_Speed = 70;          // TO TEST: Value is Mot_Trol_Speed/255 of maximum. User must choose initialization value.
+int Mot_Trol_Speed = 90;          // TO TEST: Value is Mot_Trol_Speed/255 of maximum. User must choose initialization value.
 int TrolBwdSpeedDivider = 1.3;    // TO TEST: Denominator of motor speed when Trol goes backward
 int Mot_Trol_Dirctn = 1;          // Initialization value completely arbitrary 
 int Postn_Trol_Destntn = 3;       // Values meanings correspond to those of Postn_Trol_Register. Initialization value completely arbitrary 
@@ -238,7 +238,7 @@ int Postn_Crane_Destntn = 0;            // Values correspond to those of Postn_C
 int Postn_Crane_AngleBot = 90;          // TO DO: ASCERTAIN THIS VALUE IS CORRECT
 int Postn_Crane_AngleTubLineStd = 12;   // TO DO: ASCERTAIN THIS VALUE IS CORRECT   //TO DO: MAKE Pin_Snsr_Chassis_FrontCrnrR SYMMETRICAL
 int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to the 3 position variables (0,70,90). User must choose initialization value. (First position: ClawOpen)
-
+int Postn_Crane_FarRight = 178;
 
 
 //*****************************************************************************************************************************************************************************
@@ -288,9 +288,11 @@ void setup()
   Serial.begin(9600);  
   pinMode(inPin, INPUT);
 
+  RCServo2.detach();
   RCServo0.write(Postn_Crane_AngleBot);   // crane
   RCServo1.write(Mot_Claw_Angle_Open);    // agent grabber
 
+  pinMode(Pin_SwitchMotTrol2Lift, OUTPUT);       // Relay now works (needs to be output)
   digitalWrite(Pin_SwitchMotTrol2Lift, HIGH);    // Set up relay so that trolley is controlled, not platform
   
 //  enableExternalInterrupt(INT2, FALLING);                   // COMMENTED OUT FOR NOW; NOT USING TROL LIMIT SWITCH RIGHT NOW
@@ -351,24 +353,21 @@ void loop()
 
   selectSurface(Surface_Register);
 
-
-
+/*
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);              //NEED THIS TO ENSURE WE'RE READY FOR TUB RETRIEVAL
-  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);          //NEED THIS TO ENSURE WE'RE READY FOR TUB RETRIEVAL
-
-
   RetrievalType = informIfWetOrDryRtrvl();
   doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow);
-    LCD.clear();
-    LCD.home();
-    LCD.print("Done test.");
-    delay(360000);
-    
+  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
+  setTrolleyHorizontalPosition(Postn_Trol_MaxExtnsn);
+  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
+  setTrolleyHorizontalPosition(Postn_Trol_TubRimMax);
+  setClawBlockVerticalPosition(Postn_ClBlk_AtWater);
+  LCD.clear();
+  LCD.home();
+  LCD.print("Done test.");
+  delay(360000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-
-
-
+*/
 
 
 
@@ -738,6 +737,7 @@ void loop()
 
   //=======================================================================State_RaisePltfrm
 
+  setCranePosition(Postn_Crane_FarRight);              // Get crane out of way
   digitalWrite(Pin_SwitchMotTrol2Lift, LOW);        // Switches relay for motor. Pin on TINAH. As per TINAH log
 
 
