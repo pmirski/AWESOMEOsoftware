@@ -239,7 +239,7 @@ int Postn_Crane_AngleBot = 90;          // TO DO: ASCERTAIN THIS VALUE IS CORREC
 int Postn_Crane_AngleTubLineStd = 30;   // TO DO: ASCERTAIN THIS VALUE IS CORRECT   //TO DO: MAKE Pin_Snsr_Chassis_FrontCrnrR SYMMETRICAL
 int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to the 3 position variables (0,70,90). User must choose initialization value. (First position: ClawOpen)
 int Postn_Crane_FarRight = 178; 
-int Postn_Crane_IRMakeWay = 110;        //TO DO: MAKE Postn_Crane_IRMakeWay SYMMETRICAL
+int Postn_Crane_IRMakeWay = 80;        //TO DO: MAKE Postn_Crane_IRMakeWay SYMMETRICAL
 
 
 //*****************************************************************************************************************************************************************************
@@ -291,7 +291,7 @@ void setup()
 
   RCServo2.detach();
   RCServo0.write(Postn_Crane_AngleBot);   // crane
-  RCServo1.write(Mot_Claw_Angle_Open);    // agent grabber
+  RCServo1.write(Mot_Claw_Angle_Close);    // agent grabber
 
   pinMode(Pin_SwitchMotTrol2Lift, OUTPUT);       // Relay now works (needs to be output)
   digitalWrite(Pin_SwitchMotTrol2Lift, HIGH);    // Set up relay so that trolley is controlled, not platform
@@ -429,9 +429,23 @@ void loop()
   //full stop in front of IR gate and crane out of way
   motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
   motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
-  setCranePosition(Postn_Crane_IRMakeWay);
 
 
+
+  while (!startbutton()) {
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+    LCD.clear();
+    LCD.home();
+    LCD.print("Wait4IR.PushStart! ");
+    LCD.setCursor(0,1);
+    LCD.print("IR: ");
+    if(!digitalRead(A0)){
+      LCD.print("1 kHz");
+    }else{
+      LCD.print("10 kHz");
+    }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  }
 
   GoSignal = !digitalRead(A0);
   
@@ -469,9 +483,7 @@ void loop()
     }
   }
 
-
    
-  setCranePosition(Postn_Crane_AngleBot);
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
