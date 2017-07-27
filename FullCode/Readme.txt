@@ -1,12 +1,19 @@
+General:
+1) PROBLEM: SWITCHES THAT ARE GLUED ON: WILL FALL OFF
+2) PROBLEM: no extra wheels, ready to go for immeditate replacement, if/when current ones thread out
+
+
 // Nota bene:
 //    0. All code in one file because remains ready for one-big-case conversion
 //    1. RESET AFTER EVERY TEST; otherwise variable values do not reset. Many initial values important.
 		e.g.	Postn_Trol_Register & Postn_ClBlk_Register must initially be 0.
-//    2. Trolley (at tower), ClawBlock (at jib), and Claw (open) position values are initially 0. 
+//    2. Trolley (at end (BUT SWITCH CANNOT BE DEPRESSED OR WILL NEVER MOVE), ClawBlock (at jib), and Claw (open) position values are initially 0. 
 //    3. Global variable motorspeed changes. But initialized just below it is reset.
+//    4. 
 
 
 // To do for one person (i.e. Pawel):
+
 //    -11. ENSURE NOT SPEEDING UP JUST BEFORE RAMP ENTER (RE: WALLFUCK)
 //    -10. At/approaching IR gate: Consider sensing earlier to maybe save time
 //     -9. Ensure that this gets you to Line1, from where you wanna take off
