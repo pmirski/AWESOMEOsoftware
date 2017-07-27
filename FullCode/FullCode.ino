@@ -63,7 +63,7 @@ int State_Register = 0;
 int State_WaitAtStart = 0;                   
 
 int State_Go2IRGate = 1;     
-    unsigned long Time_Go2IRGate = 3750;              //~14.5V: 3500
+    unsigned long Time_Go2IRGate = 4100;              //~14.5V: 3500
 
 int State_Wait4IRBeacon = 2;  
     int Snsr_IR; 
@@ -100,12 +100,12 @@ int State_Retrvl = 8;
 
 int State_RaisePltfrm = 9;
     int Pin_Mot_Pltfrm = 2;                       // Pin on TINAH. As per TINAH log (same as Mot_Trol)
-    int Mot_Pltfrm_Speed_Up = 100;                // TO TEST: Arbitrary until know what speed is good
-    int Mot_Pltfrm_Speed_Down = 40;               // TO TEST: Arbitrary until know what speed is good
+    int Mot_Pltfrm_Speed_Up = 180;                // TO TEST: 
+    int Mot_Pltfrm_Speed_Down = -180;             // TO TEST: 
     int Pin_Snsr_Pltfrm = 7;                      // Pin on TINAH. As per TINAH log (changed w Kurt July 25)
-    int Postn_Pltfrm_Register;                    // TO DO: Values correspond to next two vars: Postn_Pltfrm_AtBtm = 0, Postn_Pltfrm_AtZL = 1  
-    int Postn_Pltfrm_AtBtm = 0;                   // TO DO: Might switch re: sensor reading values
-    int Postn_Pltfrm_AtZL = 1;                    // TO DO: Might switch re: sensor reading values
+    int Postn_Pltfrm_Register;                    // TO DO: Values correspond to next two vars: Postn_Pltfrm_AtBtm & Postn_Pltfrm_AtZL  
+    int Postn_Pltfrm_AtBtm = 1;                   // DONE: value ascertained
+    int Postn_Pltfrm_AtZL = 0;                    // DONE: value ascertained
 
     int Pin_SwitchMotTrol2Lift = 34;                  // Switches relay for motor. Pin on TINAH. As per TINAH log  
 
@@ -222,6 +222,7 @@ int Postn_Claw_Register = Postn_Claw_Open;                  // Values 0 to 1 cor
 double Snsr_Claw_CnvrsnRatio = (2.0/1023.0);  // ASSUMPTION: have an agent means half open, This is the conversion used to get 0,1 or 2 values for Snsr_Claw_Postn that results in 
 int Mot_Claw_Angle_Close = 0;                 // Done: this value is correct
 int Mot_Claw_Angle_Open = 70;                // Done: this value is correct
+int Mot_Claw_Angle_MaxOpen = 178;            
 int Pin_Snsr_Claw = 43;                       // Pin on TINAH. As per TINAH log ANALOG
 int Mot_Claw_Dirctn = 0;                      // Initialization value completely arbitrary  
 
@@ -238,7 +239,7 @@ int Postn_Crane_AngleBot = 90;          // TO DO: ASCERTAIN THIS VALUE IS CORREC
 int Postn_Crane_AngleTubLineStd = 30;   // TO DO: ASCERTAIN THIS VALUE IS CORRECT   //TO DO: MAKE Pin_Snsr_Chassis_FrontCrnrR SYMMETRICAL
 int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to the 3 position variables (0,70,90). User must choose initialization value. (First position: ClawOpen)
 int Postn_Crane_FarRight = 178; 
-int Postn_Crane_IRMakeWay = 105;        //TO DO: MAKE Postn_Crane_IRMakeWay SYMMETRICAL
+int Postn_Crane_IRMakeWay = 110;        //TO DO: MAKE Postn_Crane_IRMakeWay SYMMETRICAL
 
 
 //*****************************************************************************************************************************************************************************
@@ -421,7 +422,7 @@ void loop()
   // ensure an interrupt is called which results in robot continuing to wait. <--Either you work more / have Jon explain his wrongly-parsed sameple code on ENPH253 website, 
   // or Jake does this.
   // 
-  // Currently commented out code: Robot waits until 10000Hz is sensed. Delay and repeat of check to "double check" that GO reading was not due to error.
+  // Robot waits until 10000Hz is sensed. Delay and repeat of check to "double check" that GO reading was not due to error.
   //
 
 
@@ -467,6 +468,8 @@ void loop()
       }
     }
   }
+
+
    
   setCranePosition(Postn_Crane_AngleBot);
 
@@ -808,6 +811,10 @@ void loop()
   LCD.home();   
   LCD.print("State_ApprchEdge");
 
+
+
+                      /*
+
   //=======================================================================State_ApprchEdge
 
   //
@@ -835,6 +842,25 @@ void loop()
 
   motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
   motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+
+                */
+
+
+                
+             //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+                motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed);
+                motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed);
+
+                delay(200);
+
+                motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+                motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+
+               //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+
+
  
   State_Register = State_LowerPltfrm;
 
@@ -908,7 +934,9 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
 
 
 
-  FXN_Claw_Destntn = Mot_Claw_Angle_Open;
+
+
+  FXN_Claw_Destntn = Mot_Claw_Angle_MaxOpen;
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
   LCD.home();
@@ -932,6 +960,21 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   setCranePosition(FXN_Crane_Destntn);
+
+
+
+  FXN_Claw_Destntn = Mot_Claw_Angle_Open;
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("ClDestO:");
+  LCD.print(FXN_Claw_Destntn);
+  LCD.setCursor(0,1);
+  LCD.print("ClRegO:");
+  LCD.print(Postn_Claw_Register);
+//  delay(2000);
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  setClawPosition(FXN_Claw_Destntn);
 
 
 

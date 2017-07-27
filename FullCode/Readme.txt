@@ -75,8 +75,9 @@ Right now (1pm):		note: ensure water retrieval l8r
 		Agent4: MaxExtensn	
 		Agent5: MaxExtensn  QUESTIONABLE
 		Agent6: MaxExtensn  QUESTIONABLE
-	1. Claw open
+	1. Claw MAX open
 	3. Crane tub angle
+	4. Claw MAX open
 	5. CB goes to input 	argument
 	5.5. TR over dry agent
 	6. Claw close
