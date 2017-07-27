@@ -63,7 +63,7 @@ int State_Register = 0;
 int State_WaitAtStart = 0;                   
 
 int State_Go2IRGate = 1;     
-    unsigned long Time_Go2IRGate = 3500;              //~14.5V: 3500
+    unsigned long Time_Go2IRGate = 3750;              //~14.5V: 3500
 
 int State_Wait4IRBeacon = 2;  
     int Snsr_IR; 
@@ -75,7 +75,7 @@ int State_ApprchRamp = 3;
     unsigned long Time_ApprchRamp = 5000;            //~14.5V: 4000
 
 int State_GoUpRamp = 4;   
-    unsigned long Time_GoUpRamp = 2500;              //~14.5V: 2500
+    unsigned long Time_GoUpRamp = 2300;              //~14.5V: 2500
     int Mot_Wheels_Speed_Ramp = Mot_Wheels_Speed*(200.0/110.0);                 //~14.5V: 200
 
 int State_AprchCircle = 5;
@@ -180,10 +180,9 @@ int TrolBwdSpeedDivider = 1.3;    // TO TEST: Denominator of motor speed when Tr
 int Mot_Trol_Dirctn = 1;          // Initialization value completely arbitrary 
 int Postn_Trol_Destntn = 3;       // Values meanings correspond to those of Postn_Trol_Register. Initialization value completely arbitrary 
 int Postn_Trol_OverBasket = 0;
-int Postn_Trol_TubRimMax = 1;
-int Postn_Trol_OverDryAgent = 2;
-int Postn_Trol_MaxExtnsn = 3;     // TO TEST: You only have 4 white tape pieces on jib now. Determine how many you want.
-volatile int Postn_Trol_Register = Postn_Trol_TubRimMax;  // MAKE THIS MAX EXTENSION after testing. Values 0 to 4 correspond to trolley position (see Postn_Trol variables). First position: Postn_Trol_AtBoom = 0
+int Postn_Trol_OverDryAgent = 1;  // //GOT RID OF int Postn_Trol_TubRimMax = 1; AND CHANGED SUCH THAT FIRST TROL MOVE (in retrieval) IF WET RETRIEVAL ISN'T TO THIS 
+int Postn_Trol_MaxExtnsn = 2;     // TO TEST: You only have 4 white tape pieces on jib now. Determine how many you want.
+volatile int Postn_Trol_Register = Postn_Trol_MaxExtnsn;  // MAKE THIS MAX EXTENSION after testing. Values 0 to 4 correspond to trolley position (see Postn_Trol variables). First position: Postn_Trol_AtBoom = 0
 
 
 //=======================================================================VARIABLES: FOR FUNCTION setClawBlockVerticalPosition==========================================
@@ -194,7 +193,7 @@ int Mot_ClBlk_Dirctn_Down = -1;
 int Mot_ClBlk_Dirctn_Up = 1;
 int Pin_Snsr_ClBlk = 1;                   // Pin on TINAH. As per TINAH log 
 int Pin_Mot_ClBlk = 3;                    // Pin on TINAH. As per TINAH log
-int Mot_ClBlk_Speed = 180;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
+int Mot_ClBlk_Speed = 195;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
 int ClbBlkDwdSpeedDivider = 2;          // TO TEST: Best value. Denominator of motor speed when ClBlk goes downward
 int Mot_ClBlk_Dirctn = 1;                 // Initialization value completely arbitrary 
 int Postn_ClBlk_Destntn = 2;              // Values correspond to those of Postn_ClBlk_Register ARBITRARY DYNAMIC INITIALIZATION VALUE 
@@ -222,7 +221,7 @@ int Postn_Claw_Destntn = 0;                   // Values 0 to 1 correspond to the
 int Postn_Claw_Register = Postn_Claw_Open;                  // Values 0 to 1 correspond to the 2 position variables. First position: Postn_Claw_Open = 0
 double Snsr_Claw_CnvrsnRatio = (2.0/1023.0);  // ASSUMPTION: have an agent means half open, This is the conversion used to get 0,1 or 2 values for Snsr_Claw_Postn that results in 
 int Mot_Claw_Angle_Close = 0;                 // Done: this value is correct
-int Mot_Claw_Angle_Open = 180;                // Done: this value is correct
+int Mot_Claw_Angle_Open = 70;                // Done: this value is correct
 int Pin_Snsr_Claw = 43;                       // Pin on TINAH. As per TINAH log ANALOG
 int Mot_Claw_Dirctn = 0;                      // Initialization value completely arbitrary  
 
@@ -236,7 +235,7 @@ int Mot_Claw_Dirctn = 0;                      // Initialization value completely
 int Mot_Crane_Dirctn = 0;               // ARBITRARY, Direction to go in; 
 int Postn_Crane_Destntn = 0;            // Values correspond to those of Postn_Crane_Register ARBITRARY DYNAMIC INITIALIZATION VALUE 
 int Postn_Crane_AngleBot = 90;          // TO DO: ASCERTAIN THIS VALUE IS CORRECT
-int Postn_Crane_AngleTubLineStd = 12;   // TO DO: ASCERTAIN THIS VALUE IS CORRECT   //TO DO: MAKE Pin_Snsr_Chassis_FrontCrnrR SYMMETRICAL
+int Postn_Crane_AngleTubLineStd = 30;   // TO DO: ASCERTAIN THIS VALUE IS CORRECT   //TO DO: MAKE Pin_Snsr_Chassis_FrontCrnrR SYMMETRICAL
 int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to the 3 position variables (0,70,90). User must choose initialization value. (First position: ClawOpen)
 int Postn_Crane_FarRight = 178;
 
@@ -479,10 +478,6 @@ void loop()
   LCD.home();   
   LCD.print("State_ApprchRamp");
 
-  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);              //NEED THIS TO ENSURE WE'RE READY FOR TUB RETRIEVAL
-  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);          //NEED THIS TO ENSURE WE'RE READY FOR TUB RETRIEVAL
-
-
 
   //=======================================================================State_ApprchRamp
     
@@ -534,6 +529,9 @@ void loop()
 
   motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
   motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);    
+
+  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);              //NEED THIS TO ENSURE WE'RE READY FOR TUB RETRIEVAL
+  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);          //NEED THIS TO ENSURE WE'RE READY FOR TUB RETRIEVAL
 
   
   //=======================================================================State_AprchCircle
@@ -630,6 +628,26 @@ void loop()
   LCD.print("State_Retrvl");
 
 
+/*            //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+ 
+ while (!startbutton()) {
+    RCServo0.write( ( (double) (180.0 / 1023.0))*knob(6));
+    LCD.clear();
+    LCD.home();
+    LCD.setCursor(0, 0);
+    LCD.print("Crane:");
+    LCD.print( ( (double) (180.0 / 1023.0))*knob(6));
+
+    int  Speed_Mot_0 = (double) ( (254 / 1023.0)*knob(6) - 127 );
+    motor.speed(2, Speed_Mot_0);
+    LCD.setCursor(0, 1);
+    LCD.print("Trol:");
+    LCD.print(Speed_Mot_0);
+    delay(30);
+ }
+             //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+*/
+
   //=======================================================================State_Retrvl
 
   //
@@ -637,6 +655,8 @@ void loop()
   // Ends once claw is opened and drops agent. Second line (Line2) from entrance is first line
   //
 
+
+  //At Line 2
   RetrievalType = informIfWetOrDryRtrvl();
   doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium);
   
@@ -664,7 +684,7 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow);
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh);          //TO DO: CHANGED TO HIGH, ENSURE THIS IS GOOD
   
   State_Register = State_AprchNextLine;
 
@@ -717,7 +737,7 @@ void loop()
   LCD.home();   
   LCD.print("State_Retrvl");
 
-  // At Line6
+  // At Line1
   RetrievalType = informIfWetOrDryRtrvl();
   doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow);
   
@@ -734,6 +754,7 @@ void loop()
   LCD.clear();  
   LCD.home();   
   LCD.print("State_RaisePltfrm");
+
 
   //=======================================================================State_RaisePltfrm
 
@@ -871,6 +892,24 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   setCranePosition(FXN_Crane_Destntn);
 
 
+
+  FXN_Trol_Destntn = Postn_Trol_MaxExtnsn;
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("TrolDestO:");
+  LCD.print(FXN_Trol_Destntn);
+  LCD.setCursor(0, 1);
+  LCD.print("TrolRegO:");
+  LCD.print(Postn_Trol_Register);
+//  delay(2000);                  
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  
+  setTrolleyHorizontalPosition(FXN_Trol_Destntn);
+
+
+
   if(FXN_RetrievalType == WetRetrieval){
     FXN_ClBlk_Destntn = Postn_ClBlk_AtWater;
   }
@@ -890,7 +929,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   setClawBlockVerticalPosition(FXN_ClBlk_Destntn);
 
   if(FXN_RetrievalType == WetRetrieval){
-    FXN_Trol_Destntn = Postn_Trol_TubRimMax;
+    FXN_Trol_Destntn = Postn_Trol_OverDryAgent;                     //TO DO, CONFIRM THIS
     setTrolleyHorizontalPosition(FXN_Trol_Destntn);      
   }
 
@@ -972,7 +1011,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn) {
   setClawPosition(FXN_Claw_Destntn);
 
 
-  FXN_Trol_Destntn = Postn_Trol_MaxExtnsn;          //Trolley ends at max extension
+  FXN_Trol_Destntn = Postn_Trol_OverDryAgent;          //Trolley ends at Postn_Trol_OverDryAgent
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
