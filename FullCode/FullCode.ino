@@ -72,7 +72,7 @@ int State_Wait4IRBeacon = 2;
 
 int State_ApprchRamp = 3;  
     unsigned long Time_WhenTimerWasLastRead = 0;
-    unsigned long Time_ApprchRamp = 5000;            //~14.5V: 4000
+    unsigned long Time_ApprchRamp = 6000;            //~14.5V: 4000
 
 int State_GoUpRamp = 4;   
     unsigned long Time_GoUpRamp = 2300;              //~14.5V: 2500
@@ -117,7 +117,7 @@ int State_EdgeSense = 11;
     int Postn_Robot_Register = 0;                 // This (0) initialization value matters
 
 int State_LowerPltfrm = 12;
-  unsigned long Time_LowerPltfrm = 1500;          // TO TEST: determine this!!! 
+  unsigned long Time_LowerPltfrm = 2000;          // TO TEST: determine this!!! 
 
 
 //=======================================================================VARIABLES: FOR FUNCTION driveWheels()==========================================
@@ -201,9 +201,8 @@ int Postn_ClBlk_AtJib = 0;
 int Postn_ClBlk_AtDryAgentHigh = 1;
 int Postn_ClBlk_AtDryAgentMedium = 2;
 int Postn_ClBlk_AtDryAgentLow = 3;
-int Postn_ClBlk_AtWater = 4;
-int Postn_ClBlk_DUMMYSTART = 5;     //Postn_ClBlk_DUMMYSTART is we start with claw at max bottom to get under first gate.
-volatile int Postn_ClBlk_Register = Postn_ClBlk_DUMMYSTART;  // Values 0 to 4 correspond to claw block position (see Postn_ClBlk variables). First position: Postn_ClBlk_AtJib = 0
+                                                                // Volatile for interrupt. NOTA BENE: We start with claw at max bottom to get under first gate.
+volatile int Postn_ClBlk_Register = Postn_ClBlk_AtDryAgentLow;  // Values 0 to 4 correspond to claw block position (see Postn_ClBlk variables). First position: Postn_ClBlk_AtJib = 0
 
 
 //=======================================================================VARIABLES: FOR FUNCTION setClawPosition. Using RCServo1.write(angle) as per TINAH log==========
@@ -364,7 +363,7 @@ void loop()
 //  setTrolleyHorizontalPosition(Postn_Trol_MaxExtnsn);
 //  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
 //  setTrolleyHorizontalPosition(Postn_Trol_TubRimMax);
-//  setClawBlockVerticalPosition(Postn_ClBlk_AtWater);
+//  setClawBlockVerticalPosition(Postn_ClBlk_AtDryAgentLow);
 //  LCD.clear();
 //  LCD.home();
 //  LCD.print("Done test.");
@@ -432,20 +431,21 @@ void loop()
 
 
 
-  while (!startbutton()) {
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-    LCD.clear();
-    LCD.home();
-    LCD.print("Wait4IR.PushStart! ");
-    LCD.setCursor(0,1);
-    LCD.print("IR: ");
-    if(!digitalRead(A0)){
-      LCD.print("1 kHz");
-    }else{
-      LCD.print("10 kHz");
-    }
+//  while (!startbutton()) {
+//    LCD.clear();
+//    LCD.home();
+//    LCD.print("Wait4IR.PushStart! ");
+//    LCD.setCursor(0,1);
+//    LCD.print("IR: ");
+//    if(!digitalRead(A0)){
+//      LCD.print("1 kHz");
+//    }else{
+//      LCD.print("10 kHz");
+//    }
+//  }
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  }
+  
 
   GoSignal = !digitalRead(A0);
   
@@ -701,9 +701,9 @@ void loop()
   //
 
 
-  //At Line 2
+  //============================================At Line 2
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium, Postn_Trol_MaxExtnsn);
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);
   
   State_Register = State_AprchNextLine;
 
@@ -721,7 +721,7 @@ void loop()
 
   doAprchNextLine();
 
-  // At Line3
+  //============================================At Line3
   State_Register = State_Retrvl;
 
   LCD.clear();  
@@ -739,25 +739,7 @@ void loop()
 
   doAprchNextLine();
 
-  // At Line4
-  State_Register = State_Retrvl;
-
-  LCD.clear();  
-  LCD.home();   
-  LCD.print("State_Retrvl");
-
-  RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh, Postn_Trol_MaxExtnsn);
-  
-  State_Register = State_AprchNextLine;
-
-  LCD.clear();  
-  LCD.home();   
-  LCD.print("State_AprchNextLine");
-
-  doAprchNextLine();
-
-  // At Line5
+  //============================================At Line4
   State_Register = State_Retrvl;
 
   LCD.clear();  
@@ -775,7 +757,25 @@ void loop()
 
   doAprchNextLine();
 
-  // At Line6
+  //============================================At Line5
+  State_Register = State_Retrvl;
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("State_Retrvl");
+
+  RetrievalType = informIfWetOrDryRtrvl();
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);
+  
+  State_Register = State_AprchNextLine;
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("State_AprchNextLine");
+
+  doAprchNextLine();
+
+  //============================================At Line6
   State_Register = State_Retrvl;
 
   LCD.clear();  
@@ -784,7 +784,7 @@ void loop()
 
   // At Line1
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh, Postn_Trol_MaxExtnsn);
   
   State_Register = State_AprchNextLine;
 
@@ -795,6 +795,33 @@ void loop()
   doAprchNextLine();                    // TO DO: ensure that this gets you to Line1, from where you wanna take off
 
 
+
+
+
+  doAprchNextLine();                      // TO DO: FOR SOME REASON ENTRANCE LINE IS TRIGGERING NEXT LINE, SO THIS IS PLACEHOLDER: ENSURE YOU CAN PASS ENTRANCE LINE CONSISTENTLY
+
+
+
+
+
+  //============================================At Line1
+  State_Register = State_Retrvl;
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("State_Retrvl");
+
+  // At Line1
+  RetrievalType = informIfWetOrDryRtrvl();
+  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium, Postn_Trol_MaxExtnsn);
+  
+  State_Register = State_AprchNextLine;
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("State_AprchNextLine");
+
+  doAprchNextLine();                    // TO DO: ensure that this gets you to Line2, from where you wanna take off
 
 
   State_Register = State_RaisePltfrm;
@@ -861,13 +888,13 @@ void loop()
                 
              //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
-                motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed);
-                motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed);
+           //     motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed);
+           //     motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed);
 
-                delay(200);
+           //     delay(200);
 
-                motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
-                motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+           //     motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+           //     motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
 
                //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
@@ -991,7 +1018,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
 
 
   if(FXN_RetrievalType == WetRetrieval){
-    FXN_ClBlk_Destntn = Postn_ClBlk_AtWater;
+    FXN_ClBlk_Destntn = Postn_ClBlk_AtDryAgentLow;
   }
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   LCD.clear();
