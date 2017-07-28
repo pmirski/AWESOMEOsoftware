@@ -66,8 +66,8 @@ int State_Go2IRGate = 1;
     unsigned long Time_Go2IRGate = 4100;              //~14.5V: 3500
 
 int State_Wait4IRBeacon = 2;  
-    int Snsr_IR; 
-    int Pin_Snsr_IR = 9999;                   // TO DO:  Change when know if using. Random numbers right now! 
+//    int Snsr_IR;                              //NOT USED AT THE MOMENT (night before time trial)
+//    int Pin_Snsr_IR = 9999;                   //NOT USED AT THE MOMENT (night before time trial)
     boolean GoSignal;                         // Indicates signal from IR PCB. 0 = 1kHz, 1 = 10kHz
 
 int State_ApprchRamp = 3;  
@@ -75,11 +75,11 @@ int State_ApprchRamp = 3;
     unsigned long Time_ApprchRamp = 6000;            //~14.5V: 4000
 
 int State_GoUpRamp = 4;   
-    unsigned long Time_GoUpRamp = 2300;              //~14.5V: 2500
+    unsigned long Time_GoUpRamp = 2100;              //~14.5V: 2500
     int Mot_Wheels_Speed_Ramp = Mot_Wheels_Speed*(200.0/110.0);                 //~14.5V: 200
 
 int State_AprchCircle = 5;
-      int MotUpperPltfrmSlowDownFactor = 1.5;        //~14.5V: 1.5               VERY IMPORTANT: THIS IS BY HOW MUCH MOT_DRIVE SPEED SLOWS AFTER RAMP, FOR REMAINDER OF HEAT        
+      int MotUpperPltfrmSlowDownFactor = 1.6;        //~14.5V: 1.5               VERY IMPORTANT: THIS IS BY HOW MUCH MOT_DRIVE SPEED SLOWS AFTER RAMP, FOR REMAINDER OF HEAT        
 
 int State_EntrgCircle = 6;
 
@@ -100,8 +100,8 @@ int State_Retrvl = 8;
 
 int State_RaisePltfrm = 9;
     int Pin_Mot_Pltfrm = 2;                       // Pin on TINAH. As per TINAH log (same as Mot_Trol)
-    int Mot_Pltfrm_Speed_Up = 180;                // TO TEST: 
-    int Mot_Pltfrm_Speed_Down = -180;             // TO TEST: 
+    int Mot_Pltfrm_Speed_Up = 70;                // TO TEST: 
+    int Mot_Pltfrm_Speed_Down = -70;             // TO TEST: 
     int Pin_Snsr_Pltfrm = 7;                      // Pin on TINAH. As per TINAH log (changed w Kurt July 25)
     int Postn_Pltfrm_Register;                    // TO DO: Values correspond to next two vars: Postn_Pltfrm_AtBtm & Postn_Pltfrm_AtZL  
     int Postn_Pltfrm_AtBtm = 1;                   // DONE: value ascertained
@@ -111,10 +111,12 @@ int State_RaisePltfrm = 9;
 
 int State_ApprchEdge = 10;
 
+ int MotUpperPltfrmSlowSPEED = 85;
+
 int State_EdgeSense = 11;
     int Pin_Snsr_ZLArrvlSwtch = 6;              // Pin on TINAH. As per TINAH log
-    int Postn_Robot_UnderZL = 1;                  // TO DO: Arbitrary until know what it needs to be re: sensor reading once zipline trips sensor
-    int Postn_Robot_Register = 0;                 // This (0) initialization value matters
+    int Postn_Robot_UnderZL = 0;                  // TO DO: Arbitrary until know what it needs to be re: sensor reading once zipline trips sensor
+    int Postn_Robot_Register = 1;                 // This (0) initialization value matters
 
 int State_LowerPltfrm = 12;
   unsigned long Time_LowerPltfrm = 2000;          // TO TEST: determine this!!! 
@@ -190,10 +192,15 @@ volatile int Postn_Trol_Register = Postn_Trol_MaxExtnsn;  // MAKE THIS MAX EXTEN
 int Postn_ClBlk_PrvsSnsr = White_Tape;    // Initialization value important (re: whether Snsr_ClBlk_Postn initial reading results in transition assumption.) 
 int Snsr_ClBlk_Postn = 0;                 // Initialization value completely arbitrary
 int Mot_ClBlk_Dirctn_Down = -1;
+
+int Pin_Switch_ClBlk = 3;
+  int Pin_Switch_ClBlk_Pressed = 0;       //0 is hi for limit switches
+  int Pin_Switch_ClBlk_Unpressed = 1;
+
 int Mot_ClBlk_Dirctn_Up = 1;
 int Pin_Snsr_ClBlk = 1;                   // Pin on TINAH. As per TINAH log 
 int Pin_Mot_ClBlk = 3;                    // Pin on TINAH. As per TINAH log
-int Mot_ClBlk_Speed = 195;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
+int Mot_ClBlk_Speed = 170;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
 int ClbBlkDwdSpeedDivider = 2;          // TO TEST: Best value. Denominator of motor speed when ClBlk goes downward
 int Mot_ClBlk_Dirctn = 1;                 // Initialization value completely arbitrary 
 int Postn_ClBlk_Destntn = 2;              // Values correspond to those of Postn_ClBlk_Register ARBITRARY DYNAMIC INITIALIZATION VALUE 
@@ -238,6 +245,7 @@ int Postn_Crane_AngleBot = 90;          // TO DO: ASCERTAIN THIS VALUE IS CORREC
 int Postn_Crane_AngleTubLineStd = 30;   // TO DO: ASCERTAIN THIS VALUE IS CORRECT   //TO DO: MAKE Pin_Snsr_Chassis_FrontCrnrR SYMMETRICAL
 int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to the 3 position variables (0,70,90). User must choose initialization value. (First position: ClawOpen)
 int Postn_Crane_FarRight = 178; 
+int Postn_Crane_FarLeft = 28;
 int Postn_Crane_IRMakeWay = 80;        //TO DO: MAKE Postn_Crane_IRMakeWay SYMMETRICAL
 
 
@@ -349,21 +357,26 @@ void loop()
     if(Surface_Register == Surface_GoRightSurf) {
     LCD.print("L");
     }    
-  }
-
+  }                           
                             
 
   selectSurface(Surface_Register);
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-//  RetrievalType = informIfWetOrDryRtrvl();
-//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow);
-//  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
-//  setTrolleyHorizontalPosition(Postn_Trol_MaxExtnsn);
-//  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
-//  setTrolleyHorizontalPosition(Postn_Trol_TubRimMax);
-//  setClawBlockVerticalPosition(Postn_ClBlk_AtDryAgentLow);
+//setClawBlockVerticalPosition(Postn_ClBlk_AtDryAgentLow);
+//setClawBlockVerticalPosition(Postn_ClBlk_AtJib);
+//setClawBlockVerticalPosition(Postn_ClBlk_AtDryAgentLow);
+//setClawBlockVerticalPosition(Postn_ClBlk_AtDryAgentHigh);
+//setClawBlockVerticalPosition(Postn_ClBlk_AtDryAgentLow);
+//setClawBlockVerticalPosition(Postn_ClBlk_AtDryAgentMedium);
+
+//setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
+//setTrolleyHorizontalPosition(Postn_Trol_MaxExtnsn);
+//setTrolleyHorizontalPosition(Postn_Trol_OverDryAgent);
+//setTrolleyHorizontalPosition(Postn_Trol_MaxExtnsn);
+//setTrolleyHorizontalPosition(Postn_Trol_OverBasket);
+
 //  LCD.clear();
 //  LCD.home();
 //  LCD.print("Done test.");
@@ -451,7 +464,7 @@ void loop()
   
   //If when you first start sensing for IR signal, the gate is open, just wait this one out. To risky to try to make it through without knowing how long the gate has already been open
   // TO DO: Consider sensing earlier to maybe save time
-  while(Snsr_IR == GoSignal){
+  while(GoSignal){
     //wait here
     GoSignal = !digitalRead(A0);
   }
@@ -555,10 +568,11 @@ void loop()
   motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
   motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);    
 
+
   setClawBlockVerticalPosition(Postn_ClBlk_AtJib);              //NEED THIS TO ENSURE WE'RE READY FOR TUB RETRIEVAL
   setTrolleyHorizontalPosition(Postn_Trol_OverBasket);          //NEED THIS TO ENSURE WE'RE READY FOR TUB RETRIEVAL
 
-  
+
   //=======================================================================State_AprchCircle
     
   //
@@ -653,45 +667,45 @@ void loop()
   LCD.print("State_Retrvl");
 
 
-/*            //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-            //Test claw block speed for this test code block
-            int TestCBSpeed = 0;
-
-            while (!startbutton()) {
-            
-            //Control crane angle & trolley speed
-                RCServo0.write( ( (double) (180.0 / 1023.0))*knob(6));      
-                LCD.clear();
-                LCD.home();
-                LCD.setCursor(0, 0);
-                LCD.print("Crn:");
-                LCD.print( ( (double) (180.0 / 1023.0))*knob(6));
-
-                int  Speed_Mot_0 = (double) ( (254 / 1023.0)*knob(6) - 127 );
-                motor.speed(2, Speed_Mot_0);
-                LCD.print("Tr:");
-                LCD.print(Speed_Mot_0);
-
-            //Control CB speed
-                LCD.setCursor(0, 1);
-                LCD.print("CB:");
-                LCD.print(TestCBSpeed);
-
-                while (startbutton()){
-                  TestCBSpeed = TestCBSpeed + 10;
-                  delay(100);
-                }
-  
-                while (stopbutton()){
-                  TestCBSpeed = TestCBSpeed - 10;
-                  delay(100);
-                }
-      
-                delay(30);
-                
-            }
+            //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+//            //Test claw block speed for this test code block
+//            int TestCBSpeed = 0;
+//
+//            while (!startbutton()) {
+//            
+//            //Control crane angle & trolley speed
+//                RCServo0.write( ( (double) (180.0 / 1023.0))*knob(6));      
+//                LCD.clear();
+//                LCD.home();
+//                LCD.setCursor(0, 0);
+//                LCD.print("Crn:");
+//                LCD.print( ( (double) (180.0 / 1023.0))*knob(6));
+//
+//                int  Speed_Mot_0 = (double) ( (254 / 1023.0)*knob(6) - 127 );
+//                motor.speed(2, Speed_Mot_0);
+//                LCD.print("Tr:");
+//                LCD.print(Speed_Mot_0);
+//
+//            //Control CB speed
+//                LCD.setCursor(0, 1);
+//                LCD.print("CB:");
+//                LCD.print(TestCBSpeed);
+//
+//                while (startbutton()){
+//                  TestCBSpeed = TestCBSpeed + 10;
+//                  delay(100);
+//                }
+//  
+//                while (stopbutton()){
+//                  TestCBSpeed = TestCBSpeed - 10;
+//                  delay(100);
+//                }
+//      
+//                delay(30);
+//                
+//            }
              //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-*/
+
 
   //=======================================================================State_Retrvl
 
@@ -792,16 +806,32 @@ void loop()
   LCD.home();   
   LCD.print("State_AprchNextLine");
 
+
+            
+
+//   CODE BELOW HAS BEEN EDITED NIGHT BEFORE TIME TRIALS, UPSTAIRS JUST FOR THE ZIPLINE STUFF, ONLY AFTER THIS POINT     RIGHT NOW YOU ARE AT LINE 6
+
+
+
   doAprchNextLine();                    // TO DO: ensure that this gets you to Line1, from where you wanna take off
 
-
+             //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("ApprchEntr");
+//delay(100)
+             //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
 
 
   doAprchNextLine();                      // TO DO: FOR SOME REASON ENTRANCE LINE IS TRIGGERING NEXT LINE, SO THIS IS PLACEHOLDER: ENSURE YOU CAN PASS ENTRANCE LINE CONSISTENTLY
 
-
-
+             //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();
+  LCD.home();
+  LCD.print("ApprchLine1");
+//delay(100)
+             //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
 
   //============================================At Line1
@@ -817,11 +847,62 @@ void loop()
   
   State_Register = State_AprchNextLine;
 
+             //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
   LCD.clear();  
-  LCD.home();   
-  LCD.print("State_AprchNextLine");
+  LCD.home();                //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.print("State_AprchLine2");     // TO DO: CHANGED FROM   LCD.print("State_AprchNextLine");
 
   doAprchNextLine();                    // TO DO: ensure that this gets you to Line2, from where you wanna take off
+  //At Line2
+
+             //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("State_AprchLine3"); 
+//delay(100)
+             //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+
+  
+  doAprchNextLine();
+  //At Line3
+
+               //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+//delay(100);
+
+  //Stop at line 3
+
+     motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+     motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+
+             //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("DrvFwd .6s"); 
+               //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+
+    //drive fwd .6sec
+    motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed*(-1));
+    motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed);
+    delay(600);
+    
+             //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("Turn 1.5s"); 
+             //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+
+
+    //turn 1.5sec
+        motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed*(-1));                   //TO DO: MAKE wheelspeeds SYMMETRICAL
+        motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);                          //TO DO: MAKE wheelspeeds SYMMETRICAL
+      delay(1500);
+
+     motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+     motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
 
 
   State_Register = State_RaisePltfrm;
@@ -831,12 +912,15 @@ void loop()
   LCD.print("State_RaisePltfrm");
 
 
+
+
   //=======================================================================State_RaisePltfrm
 
-  setCranePosition(Postn_Crane_FarRight);              // Get crane out of way
+  setCranePosition(Postn_Crane_FarLeft);              // Get crane out of way
   digitalWrite(Pin_SwitchMotTrol2Lift, LOW);        // Switches relay for motor. Pin on TINAH. As per TINAH log
 
-
+  Postn_Pltfrm_Register = digitalRead(Pin_Snsr_Pltfrm);
+    
   while(Postn_Pltfrm_Register != Postn_Pltfrm_AtZL) {
     motor.speed(Pin_Mot_Pltfrm, Mot_Pltfrm_Speed_Up);
     Postn_Pltfrm_Register = digitalRead(Pin_Snsr_Pltfrm);
@@ -848,7 +932,7 @@ void loop()
 
   LCD.clear();  
   LCD.home();   
-  LCD.print("State_ApprchEdge");
+  LCD.print("State_ApprchZL");
 
 
 
@@ -871,21 +955,38 @@ void loop()
   LCD.home();
   LCD.print("State_EdgeSense");
 
+*/
 
   //=======================================================================State_EdgeSense
 
+delay(1000);
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("Reg:"); 
+  LCD.print(Postn_Robot_Register);
+  LCD.setCursor(0,1);
+  LCD.print("SwtSnsr:"); 
+  LCD.print(digitalRead(Pin_Snsr_ZLArrvlSwtch));
+delay(4000);
+
+
+     Mot_Wheels_Speed = MotUpperPltfrmSlowSPEED;
+
+Postn_Robot_Register = digitalRead(Pin_Snsr_ZLArrvlSwtch);      //take out if bad
+
+//reg:0, snsr:1,      Postn_Robot_UnderZL = 0
+
   while(Postn_Robot_Register != Postn_Robot_UnderZL) {
-    edgeSense();
+    motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed*(-1));
+    motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed);
     Postn_Robot_Register = digitalRead(Pin_Snsr_ZLArrvlSwtch);   
   }
 
   motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
   motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
 
-                */
 
-
-                
              //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
            //     motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed);
@@ -899,8 +1000,6 @@ void loop()
                //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
 
-
- 
   State_Register = State_LowerPltfrm;
 
   LCD.clear();  
@@ -917,6 +1016,15 @@ void loop()
   }
 
   motor.speed(Pin_Mot_Pltfrm, Mot_Speed_Stop);
+
+
+
+    motor.speed(Pin_Mot_Wheels_L, -Mot_Wheels_Speed*(-1));
+    motor.speed(Pin_Mot_Wheels_R, -Mot_Wheels_Speed);
+    delay(500);
+    motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+    motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
@@ -1481,6 +1589,7 @@ void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
     LCD.print(Postn_Trol_Register);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
+
     if(Postn_Trol_Register == Postn_Trol_MaxExtnsn){              //This ensures you're not stuck at end.
        //pass
     }
@@ -1555,6 +1664,14 @@ void setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
       LCD.print(Postn_ClBlk_Register);
       delay(30);        //FOR TESTING ONLY (Lets you see menu display after reaching destination); REMOVE AFTER
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+
+    if(digitalRead(Pin_Switch_ClBlk) == Pin_Switch_ClBlk_Pressed){
+        Postn_ClBlk_Register = Postn_ClBlk_AtJib;
+        FXN_ClBlk_Destntn = Postn_ClBlk_Register;
+    }
+
+  
   }
 
   //Stop motor here, since you've reached destination (condition for exiting above while loop)

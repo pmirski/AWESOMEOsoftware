@@ -87,3 +87,5 @@ Right now (1pm):		note: ensure water retrieval l8r
 	9. TR over basket
 	10. Claw open
 
+tm morning: -charge all bats immediately.
+	    -ensure crane is good.
