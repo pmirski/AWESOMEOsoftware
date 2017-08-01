@@ -20,14 +20,17 @@ CAM SAYS: "Agent at position #2 is at LO , robot tried to grab at either Hi or M
 
 
 
-Pawel:
-1. Testing & Error handling!!! Consider all possibilities
-	Talk to Jon re: clear tub 
-	Look at what Cam made; test to see if works
-2. Mirrored surface 	<--- Do this ASAP and you'll have a second surface
-3. Test transition from retrieval to zipline
-4. Move edge sensors
-5. Change times: wait for Kurt's voltage regulation
+Pawel: TESTING IS #1
+IMPLEMENT ERROR HANDLING AFTER TESTING IS SUCCESSFUL
+	Tuesday morning: error handling considerations + general cleanup
+1. Testing 
+2. Change so that tapefollow a little longer, then crane turns
+3. Error handling!!! Consider all possibilities
+4. Test mirrored surface
+5. Test transition from retrieval to zipline
+6. Move edge sensors <---test if can
+7. Change times: wait for Kurt's voltage regulation
+
 
 ASK TIME REQUIRED 
 
@@ -99,29 +102,27 @@ Concerns:
 
 -If up speed, enlarge white space, make limiters, etc.
 
--To make symmetrical:
-State_AprchCircle, Crane retrieval angle(s), State_AprchEdge, State_EdgeSense + edgeSense(), exiting circle IF you read entrance line, 
-
-
 Added Thu: 
 Right now (1pm):		note: ensure water retrieval l8r
-	0. TR: enter/exit  	argument
+	1. TR: enter/exit argument
 		Agent2: MaxExtensn
 		Agent3: MaxExtensn	
 		Agent4: MaxExtensn	
 		Agent5: MaxExtensn  QUESTIONABLE
 		Agent6: MaxExtensn  QUESTIONABLE
-	1. Claw MAX open
+	2. Claw max open
 	3. Crane tub angle
-	4. Claw MAX open
-	5. CB goes to input 	argument
-	5.5. TR over dry agent
+	4. Claw open (not max)
+		If wet: claw open MAX
+	5. CB goes to input argument (re: agent height)
+		If wet: CB goes to low agent
+	5.5 TR over dry agent
 	6. Claw close
 	7. CB to jib
-	7.5 TR: enter/exit  	argument
+	7.5 TR: enter/exit argument
 	8. Crane over bot
 	9. TR over basket
 	10. Claw open
 
-tm morning: -charge all bats immediately.
-	    -ensure crane is good.
+
+grabbed platform
