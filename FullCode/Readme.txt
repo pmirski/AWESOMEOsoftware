@@ -1,3 +1,39 @@
+
+1. COPY CODE and make symmetrical (new folder)				
+	PHYSICAL CHANGE: lower & connect other QRD block
+	CODE CHANGE: lots. add that other pin sensor
+2. Make changes for the one sing hor trolley (only one position to go to: pulls agent up, exits loop soon if dun register switch, goes to crane move, claw opens, go to next
+	PHYSICAL CHANGE: 1. take off last stripe
+			 2. maybe Cam's pancake stack increase? <--CONCERN: NO TUB CLEARANCE
+	CODE CHANGE: 1. make exit ClBlk loop after some time (pancake stack may suffice)
+		     2. ma
+
+Also: w 16.7, too far on IRgate approach (and only shorten IR approach there)
+Also: BRING HEAT/GLUE GUN FOR ADDING PANCAKE STACK (or...velcro? sth ready, off/on
+Also: 111 on 16.4, 105 on 16.7
+Also: ZL full turn works well with 16.7
+
+CHARGE ALL BATTERIES ON OTHER PPLS RIGHT WHEN ENTER
+
+CAM SAYS: "Agent at position #2 is at LO , robot tried to grab at either Hi or Medium"
+
+
+
+
+Pawel:
+1. Testing & Error handling!!! Consider all possibilities
+	Talk to Jon re: clear tub 
+	Look at what Cam made; test to see if works
+2. Mirrored surface 	<--- Do this ASAP and you'll have a second surface
+3. Test transition from retrieval to zipline
+4. Move edge sensors
+5. Change times: wait for Kurt's voltage regulation
+
+ASK TIME REQUIRED 
+
+
+
+
 // Nota bene:
 //    0. All code in one file because remains ready for one-big-case conversion
 //    1. RESET AFTER EVERY TEST; otherwise variable values do not reset. Many initial values important.
