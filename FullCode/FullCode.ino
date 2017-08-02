@@ -850,9 +850,11 @@ while(1 != 0 ){
 // Last function call (& argument): Trolley ends at max extension.
 
 void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Trol_EnterExitTub) {
+  
   int FXN_Trol_Destntn;
   int FXN_Crane_Destntn;
   int FXN_Claw_Destntn;
+  unsigned long offset_time = 100;
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
@@ -862,9 +864,10 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.print(FXN_Postn_Trol_EnterExitTub);
   LCD.setCursor(0, 1);
   LCD.print("TrolRegO:");
-  LCD.print(Postn_Trol_Register);
-//  delay(2000);                  
+  LCD.print(Postn_Trol_Register);           
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  
+  
   setTrolleyHorizontalPosition(FXN_Postn_Trol_EnterExitTub);
 
 
@@ -876,8 +879,9 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.setCursor(0,1);
   LCD.print("ClRegO:");
   LCD.print(Postn_Claw_Register);
-//  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  
+  
   setClawPosition(Mot_Claw_Angle_MaxOpen);
 
 
@@ -888,6 +892,8 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.print(Postn_Crane_AngleTubLineStd);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  
+  
   setCranePosition(Postn_Crane_AngleTubLineStd);   //TO DO: MAKE this valuation SYMMETRICAL
 
 
@@ -907,6 +913,8 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.print(Postn_Claw_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  
+  
   setClawPosition(Mot_Claw_Angle_Open);
 
 
@@ -923,7 +931,11 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.print(Postn_ClBlk_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  setClawBlockVerticalPosition(FXN_ClBlk_Destntn);
+
+  //move claw block down to agent. If it can't quite get there, move up slightly and continue.
+  if(!setClawBlockVerticalPosition(FXN_ClBlk_Destntn)){
+    driveVerticalMotor("UP",offset_time);
+  }
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
@@ -935,7 +947,11 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.print(Postn_Trol_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK 
-  setTrolleyHorizontalPosition(Postn_Trol_OverDryAgent);
+
+  //move claw block in towards agent. If it cant quite get there, move back out and continue
+  if(!setTrolleyHorizontalPosition(Postn_Trol_OverDryAgent)){
+    driveHorizontalMotor("OUT",offset_time);
+  }
 
 
 //  COMMENTED OUT: NO WATER RETRIEVAL YET
@@ -955,6 +971,8 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.print(Postn_Claw_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  
+  
   setClawPosition(Postn_Claw_Close);
 
 
@@ -968,7 +986,20 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.print(Postn_ClBlk_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);
+  
+  if(!setClawBlockVerticalPosition(Postn_ClBlk_AtJib)){
+    //if the position has not changed from the destination, there is a good chance the claw grabbed the platform
+    //attempt to release platform and continue and reset
+    if(Postn_ClBlk_Register == FXN_ClBlk_Destntn){
+      setClawPosition(Postn_Claw_Open);
+      driveHorizontalMotor("OUT",offset_time/2);
+      setClawBlockVerticalPosition(Postn_ClBlk_AtJib)   
+    }else{
+      //if the claw is not stuck on the platform, the agent likely is too high in the claw to allow the limit switch to be pressed
+      //move the claw down very slightly
+      driveVerticalMotor("DOWN",offset_time);
+    }
+  }
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
@@ -1284,7 +1315,10 @@ void setClawPosition(int FXN1_Claw_Destntn) {
 // position and stops if same as destination.
 //
 
-void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
+boolean setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
+
+  unsigned long call_time = millis();
+  unsigned long timeout = 3000;
 
   //Set trolley motor direction according to destination. Return if already at destination 
   if(FXN_Trol_Destntn > Postn_Trol_Register)
@@ -1292,16 +1326,22 @@ void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
   else if(FXN_Trol_Destntn < Postn_Trol_Register)
     Mot_Trol_Dirctn = Mot_Trol_Dirctn_Bkwrd;
   else if(FXN_Trol_Destntn == Postn_Trol_Register)
-    return;
+    return true;
 
   //Drive motor until destination, checking if sense tape marker
   while(Postn_Trol_Register != FXN_Trol_Destntn) {
-      if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_Bkwrd){
-        motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn)/TrolBwdSpeedDivider);
-      }
-      else {
-        motor.speed(Pin_Mot_Trol, Mot_Trol_Speed*Mot_Trol_Dirctn);
-      }
+      
+    //Check if the function should time out
+    if(millis() - call_time > timeout){
+      return false;
+    }
+    
+    if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_Bkwrd){
+      motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn)/TrolBwdSpeedDivider);
+    }
+    else {
+      motor.speed(Pin_Mot_Trol, Mot_Trol_Speed*Mot_Trol_Dirctn);
+    }
     Postn_Trol_PrvsSnsr = Snsr_Trol_Postn;
     Snsr_Trol_Postn = digitalRead(Pin_Snsr_Trol);
 
@@ -1309,17 +1349,17 @@ void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
     if(Postn_Trol_PrvsSnsr != Snsr_Trol_Postn & Postn_Trol_PrvsSnsr == Black_Tape){
       if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_Fwrd)
         Postn_Trol_Register++;
-      else
+      else if(Postn_Trol_Register != 1) //position 0 should only be reachable by tripping the switch
         Postn_Trol_Register--;
     }
 
 
-  //This code is to register when switch pushed at outer end of jib.
-  //Meeting condition "!(Postn_Trol_Register == Postn_Trol_MaxExtnsn)" ensures you're not stuck at jib-end when trying to move down (i.e. don't enter next statement if start from jib-end)
-  if( !(Postn_Trol_Register == Postn_Trol_MaxExtnsn) && (digitalRead(Pin_Switch_Trol) == Pin_Switch_Trol_Pressed) ){
-    Postn_Trol_Register = Postn_Trol_MaxExtnsn;
-    FXN_Trol_Destntn = Postn_Trol_Register;     //This affirms condition to exit parent while loop
-  }
+    //This code is to register when switch pushed at outer end of jib.
+    //Meeting condition "!(Postn_Trol_Register == Postn_Trol_MaxExtnsn)" ensures you're not stuck at jib-end when trying to move down (i.e. don't enter next statement if start from jib-end)
+    if( !(Postn_Trol_Register == Postn_Trol_MaxExtnsn) && (digitalRead(Pin_Switch_Trol) == Pin_Switch_Trol_Pressed) ){
+      Postn_Trol_Register = Postn_Trol_MaxExtnsn;
+      FXN_Trol_Destntn = Postn_Trol_Register;     //This affirms condition to exit parent while loop
+    }
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   //Displays sensor's voltage and position register
@@ -1337,13 +1377,8 @@ void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
     //Stop motor here, since you've reached destination (condition for exiting above while loop)
   if (Postn_Trol_Register == FXN_Trol_Destntn){
   motor.speed(Pin_Mot_Trol, Mot_Speed_Stop);
+  return true;
   }
-
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-//    delay(10000);  //(Lets you see menu display after reaching destination); REMOVE AFTER
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-
-  return;
 }
 
 
@@ -1358,7 +1393,10 @@ void setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
 // position and stops if same as destination.
 //
 
-void setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
+boolean setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
+
+  unsigned long call_time = millis();
+  unsigned long timeout = 3000;
 
   //Set claw block motor direction according to destination. Return if already at destination 
   if(FXN_ClBlk_Destntn > Postn_ClBlk_Register)
@@ -1366,10 +1404,16 @@ void setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
   else if(FXN_ClBlk_Destntn < Postn_ClBlk_Register)
     Mot_ClBlk_Dirctn = Mot_ClBlk_Dirctn_Up;
   else if(FXN_ClBlk_Destntn == Postn_ClBlk_Register)
-    return;
+    return true;
 
   //Drive motor until destination, checking if sense tape marker
   while(Postn_ClBlk_Register != FXN_ClBlk_Destntn) {
+
+    //Check if the function should time out
+    if(millis() - call_time > timeout){
+      return false;
+    }
+    
     if(Mot_ClBlk_Dirctn == Mot_ClBlk_Dirctn_Down){
       motor.speed(Pin_Mot_ClBlk, (Mot_ClBlk_Speed*Mot_ClBlk_Dirctn)/ClbBlkDwdSpeedDivider);
     }
@@ -1381,10 +1425,10 @@ void setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
 
     //If see tape marker transition (from black to white patch (which is position marker)), increment claw block position register according to motor direction
     if(Postn_ClBlk_PrvsSnsr != Snsr_ClBlk_Postn & Postn_ClBlk_PrvsSnsr == Black_Tape){
-      if(Mot_ClBlk_Dirctn == Mot_ClBlk_Dirctn_Up)
-        Postn_ClBlk_Register--;
-      else
+      if(Mot_ClBlk_Dirctn == Mot_ClBlk_Dirctn_Down)
         Postn_ClBlk_Register++;
+      else if(Postn_ClBlk_Register != 1) //the only way to get to position 0 should be by tripping the switch
+        Postn_ClBlk_Register--;
     }
 
 
@@ -1412,14 +1456,53 @@ void setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
 
   //Stop motor here, since you've reached destination (condition for exiting above while loop)
   if (Postn_ClBlk_Register == FXN_ClBlk_Destntn){
-  motor.speed(Pin_Mot_ClBlk, Mot_Speed_Stop);
+    motor.speed(Pin_Mot_ClBlk, Mot_Speed_Stop);
+    return true;
+  }
+}
+
+/* Drives the vertical actuating motor up or down for a given amount of time
+ *  Inputs - 
+ *    direction: the direction to move the vertical arm, either "UP" or "DOWN"
+ *    time: the number of milliseconds to move the claw for      
+ */
+void driveVerticalMotor(String direction, unsigned long time){
+  unsigned long start_time = millis();
+
+  if(direction == "UP"){
+    motor.speed(Pin_Mot_ClBlk, (Mot_ClBlk_Speed*Mot_ClBlk_Dirctn_Up));
+  }else if(direction == "DOWN"){
+    motor.speed(Pin_Mot_ClBlk, (Mot_ClBlk_Speed*Mot_ClBlk_Dirctn_Down)/ClbBlkDwdSpeedDivider);
   }
 
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  //delay(3000);  //FOR TESTING ONLY (Lets you see menu display after reaching destination); REMOVE AFTER
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  while(!(millis()-start_time > time)){
+    //idly spin until the appropriate time has passed
+  }
 
-  return;
+  motor.speed(Pin_Mot_ClBlk, Mot_Speed_Stop);
+  
+}
+
+/* Drives the horizontal actuating motor out or in for a given amount of time
+ *  Inputs - 
+ *    direction: the direction to move the vertical arm, either "OUT" or "IN", where "OUT" is towards the end of the boom
+ *    time: the number of milliseconds to move the claw for      
+ */
+void driveHorizontalMotor(String direction, unsigned long time){
+  unsigned long start_time = millis();
+
+  if(direction == "OUT"){
+    motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn_Fwrd));
+  }else if(direction == "IN"){
+    motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn_Bkwrd)/TrolBwdSpeedDivider);
+  }
+
+  while(!(millis()-start_time > time)){
+    //idly spin until the appropriate time has passed
+  }
+
+  motor.speed(Pin_Mot_Trol, Mot_Speed_Stop);
+  
 }
 
 
