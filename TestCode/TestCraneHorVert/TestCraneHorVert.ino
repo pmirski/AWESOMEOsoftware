@@ -49,6 +49,11 @@ void setup()
     #include <phys253setup.txt>
     Serial.begin(9600);  
     pinMode(inPin, INPUT);
+
+    
+  RCServo2.detach();
+  pinMode(34, OUTPUT);       // Relay now works (needs to be output)
+  digitalWrite(34, HIGH);    // Set up relay so that trolley is controlled, not platform
 }
 
  //   THIS IS YOUR MAIN LOOP

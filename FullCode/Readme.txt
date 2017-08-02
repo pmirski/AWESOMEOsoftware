@@ -1,6 +1,40 @@
-General:
-1) PROBLEM: SWITCHES THAT ARE GLUED ON: WILL FALL OFF (TROL, CB)
-2) PROBLEM: no extra wheels, ready to go for immeditate replacement, if/when current ones thread out
+
+1. COPY CODE and make symmetrical (new folder)				
+	PHYSICAL CHANGE: lower & connect other QRD block
+	CODE CHANGE: lots. add that other pin sensor
+2. Make changes for the one sing hor trolley (only one position to go to: pulls agent up, exits loop soon if dun register switch, goes to crane move, claw opens, go to next
+	PHYSICAL CHANGE: 1. take off last stripe
+			 2. maybe Cam's pancake stack increase? <--CONCERN: NO TUB CLEARANCE
+	CODE CHANGE: 1. make exit ClBlk loop after some time (pancake stack may suffice)
+		     2. ma
+
+Also: w 16.7, too far on IRgate approach (and only shorten IR approach there)
+Also: BRING HEAT/GLUE GUN FOR ADDING PANCAKE STACK (or...velcro? sth ready, off/on
+Also: 111 on 16.4, 105 on 16.7
+Also: ZL full turn works well with 16.7
+
+CHARGE ALL BATTERIES ON OTHER PPLS RIGHT WHEN ENTER
+
+CAM SAYS: "Agent at position #2 is at LO , robot tried to grab at either Hi or Medium"
+
+
+
+
+Pawel: TESTING IS #1
+IMPLEMENT ERROR HANDLING AFTER TESTING IS SUCCESSFUL
+	Tuesday morning: error handling considerations + general cleanup
+1. Testing 
+2. Change so that tapefollow a little longer, then crane turns
+3. Error handling!!! Consider all possibilities
+4. Test mirrored surface
+5. Test transition from retrieval to zipline
+6. Move edge sensors <---test if can
+7. Change times: wait for Kurt's voltage regulation
+
+
+ASK TIME REQUIRED 
+
+
 
 
 // Nota bene:
@@ -12,7 +46,7 @@ General:
 
 
 // To do for one person (i.e. Pawel):
-
+//    -12. OPEN ANGLE IS CURRENTLY NOT TOTALLY OPEN; CHANGE FOR WATER RETRIEVAL
 //    -11. ENSURE NOT SPEEDING UP JUST BEFORE RAMP ENTER (RE: WALLFUCK)
 //    -10. At/approaching IR gate: Consider sensing earlier to maybe save time
 //     -9. Ensure that this gets you to Line1, from where you wanna take off
@@ -63,16 +97,32 @@ Concerns:
 		MAYBE: 	Clamp downward
 	
 
-make cut lines: Q3
-
-********************************************************************************************
+*********************************CONCERN SANDBOX*******************************************
 -DC motor speeds: Can have Well over 125 going up claw block motor speed. Try 170?
 
 -If up speed, enlarge white space, make limiters, etc.
 
--LIMIT SWITCHES ARE GLUED ON; EPOXY THEM!!! (CB and TROL)
+Added Thu: 
+Right now (1pm):		note: ensure water retrieval l8r
+	1. TR: enter/exit argument
+		Agent2: MaxExtensn
+		Agent3: MaxExtensn	
+		Agent4: MaxExtensn	
+		Agent5: MaxExtensn  QUESTIONABLE
+		Agent6: MaxExtensn  QUESTIONABLE
+	2. Claw max open
+	3. Crane tub angle
+	4. Claw open (not max)
+		If wet: claw open MAX
+	5. CB goes to input argument (re: agent height)
+		If wet: CB goes to low agent
+	5.5 TR over dry agent
+	6. Claw close
+	7. CB to jib
+	7.5 TR: enter/exit argument
+	8. Crane over bot
+	9. TR over basket
+	10. Claw open
 
--To make symmetrical:
-State_AprchCircle, Crane retrieval angle(s), State_AprchEdge, State_EdgeSense + edgeSense(), exiting circle IF you read entrance line, 
 
-
+grabbed platform

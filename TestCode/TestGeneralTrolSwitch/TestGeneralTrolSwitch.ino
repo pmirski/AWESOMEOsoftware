@@ -15,6 +15,10 @@ void setup()
     pinMode(inPin, INPUT);
     RCServo0.write(90);
     RCServo1.write(90);
+
+  RCServo2.detach();
+  pinMode(34, OUTPUT);       // Relay now works (needs to be output)
+  digitalWrite(34, HIGH);    // Set up relay so that trolley is controlled, not platform
 }
  
 void loop()
