@@ -10,7 +10,7 @@ void setup()
 {  
   #include <phys253setup.txt>
   Serial.begin(9600);  
-  RCServo0.write(90);   //crane
+  RCServo0.write(50);   //crane
   RCServo1.write(40);   //agent grabber
 
   RCServo2.detach();
@@ -21,8 +21,8 @@ void setup()
 void loop()
 {
 
-  Speed_Mot_1 = (double) ( (254 / 1023.0)*knob(7) - 127 );    //MAX SPEEDS ARE HALVED TO NOT DESTORY MOTORS
-  Speed_Mot_0 = (double) ( (254 / 1023.0)*knob(6) - 127 );
+  Speed_Mot_1 = (double) ( (254*2 / 1023.0)*knob(7) - 254 );    //MAX SPEEDS ARE HALVED TO NOT DESTORY MOTORS
+  Speed_Mot_0 = (double) ( (254*2 / 1023.0)*knob(6) - 254 );
 
   motor.speed(Pin_Mot_0, Speed_Mot_0);
   motor.speed(Pin_Mot_1, Speed_Mot_1);
