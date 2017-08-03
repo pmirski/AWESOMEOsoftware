@@ -1040,7 +1040,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
     if(Postn_ClBlk_Register == FXN_ClBlk_Destntn){
       setClawPosition(Postn_Claw_Open);
       driveHorizontalMotor("OUT",offset_time/2);
-      setClawBlockVerticalPosition(Postn_ClBlk_AtJib)   
+      setClawBlockVerticalPosition(Postn_ClBlk_AtJib);   
     }else{
       //if the claw is not stuck on the platform, the agent likely is too high in the claw to allow the limit switch to be pressed
       //move the claw down very slightly
@@ -1387,8 +1387,8 @@ boolean setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
       return false;
     }
     
-    if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_Bkwrd){
-      motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn)/TrolBwdSpeedDivider);
+    if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_ToTwr){
+      motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn)*Trol_Speed_ToEndMultplier);
     }
     else {
       motor.speed(Pin_Mot_Trol, Mot_Trol_Speed*Mot_Trol_Dirctn);
@@ -1544,9 +1544,9 @@ void driveHorizontalMotor(String direction, unsigned long time){
   unsigned long start_time = millis();
 
   if(direction == "OUT"){
-    motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn_Fwrd));
+    motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn_ToEnd));
   }else if(direction == "IN"){
-    motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn_Bkwrd)/TrolBwdSpeedDivider);
+    motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn_ToTwr)/Trol_Speed_ToEndMultplier);
   }
 
   while(!(millis()-start_time > time)){
