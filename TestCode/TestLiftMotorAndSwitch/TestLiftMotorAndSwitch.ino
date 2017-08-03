@@ -9,6 +9,8 @@ double Speed_Mot_2;
 
 int Pin_SwitchPltfrm = 7;
 int SwitchValue;
+int SwitchTriggered = false;
+int MotorDirection = 1;
 
 int Pin_SwitchMotTrol2Lift = 34;                  // Switches relay for motor. Pin on TINAH. As per TINAH log  
 
@@ -26,7 +28,25 @@ void loop()
 
   Speed_Mot_2 = (double) ( (508 / 1023.0)*knob(7) - 254 );    //MAX SPEEDS ARE HALVED TO NOT DESTORY MOTORS
 
-  motor.speed(Pin_Mot_2, Speed_Mot_2);
+  if(SwitchTriggered){
+    unsigned long startTime = millis();
+    unsigned long testDuration = 100;
+    int testSignal = 0;
+    int count = 0;
+
+    while(millis() - startTime < testDuration){
+      count++;
+      
+    }
+    delay(2500);
+    MotorDirection = MotorDirection*(-1)
+    
+  }
+  motor.speed(Pin_Mot_2, Speed_Mot_2*MotorDirection);
+
+  if(!digitalRead(Pin_SwitchPltfrm)){
+    
+  }
 
   SwitchValue = digitalRead(Pin_SwitchPltfrm);
 

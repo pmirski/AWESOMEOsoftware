@@ -55,7 +55,7 @@ int State_Register = 0;
 int State_WaitAtStart = 0;                   
 
 int State_Go2IRGate = 1;     
-    unsigned long Time_Go2IRGate = 4100;              //~14.5V: 3500
+    unsigned long Time_Go2IRGate = 3900;              // 16.6V:3900 is PEFECT
 
 int State_Wait4IRBeacon = 2;  
 //    int Snsr_IR;                              // NOT USED AT THE MOMENT (night before time trial)
@@ -64,16 +64,21 @@ int State_Wait4IRBeacon = 2;
 
 int State_ApprchRamp = 3;  
     unsigned long Time_WhenTimerWasLastRead = 0;
-    unsigned long Time_ApprchRamp = 6000;            //~14.5V: 4000
+    unsigned long Time_ApprchRamp = 6000;            //
 
 int State_GoUpRamp = 4;   
-    unsigned long Time_GoUpRamp = 2100;              //~14.5V: 2500
+    unsigned long Time_GoUpRamp = 2100;              //
     int Mot_Wheels_Speed_Ramp = Mot_Wheels_Speed*(200.0/110.0);                 //~14.5V: 200
 
 int State_AprchCircle = 5;
     int Mot_Wheels_Speed_UpperPltfrmSlowDownFactor = 1.6;        //~14.5V: 1.5               VERY IMPORTANT: THIS IS BY HOW MUCH MOT_DRIVE SPEED SLOWS AFTER RAMP, FOR REMAINDER OF HEAT        
     int Pin_Snsr_Chassis_Corner_ApprchCircle;                    // A variable that may be selected when user chooses surface
     int Pin_Snsr_Chassis_Front_ApprchCircle;                     // A variable that may be selected when user chooses surface
+    unsigned long Time_TapeFlw2EnsureOnLine = 1200;              //16.3V:1500, 16.5V:1200 (1500 makes it almost go over)
+    int ANALOGTHRESHOLD;
+    int ANALOGTHRESHOLD_FarRightSnsr = 500;                      // Symmetrical (re: other surface)
+    int ANALOGTHRESHOLD_FarLeftSnsr = 800;                       // Symmetrical (re: other surface)
+
 
 int State_EntrgCircle = 6;
 
@@ -138,20 +143,20 @@ int count = 0;                          // USED ONLY FOR TESTING driveWheels() t
 
 int Postn_Trol_PrvsSnsr = 0;      // You must choose initialization value
 int Snsr_Trol_Postn = 0;          // Initialization value completely arbitrary 
-int Mot_Trol_Dirctn_Bkwrd = -1;
-int Mot_Trol_Dirctn_Fwrd = 1; 
+int Mot_Trol_Dirctn_ToEnd = -1;
+int Mot_Trol_Dirctn_ToTwr = 1;
 int Pin_Snsr_Trol = 0;            // Pin on TINAH. As per TINAH log
 int Pin_Switch_Trol = 2;
   int Pin_Switch_Trol_Pressed = 0;       //0 is hi for limit switches
   int Pin_Switch_Trol_Unpressed = 1;
 int Pin_Mot_Trol = 2;             // Pin on TINAH. As per TINAH log (same as Mot_Pltfrm)
 int Mot_Trol_Speed = 80;          // TO TEST: Value is Mot_Trol_Speed/255 of maximum. User must choose initialization value.
-int TrolBwdSpeedDivider = 1;    // TO TEST: Denominator of motor speed when Trol goes backward
+int Trol_Speed_ToEndMultplier = 1;    // TO TEST: Denominator of motor speed when Trol goes backward
 int Mot_Trol_Dirctn = 1;          // Initialization value completely arbitrary 
 int Postn_Trol_Destntn = 3;       // Values meanings correspond to those of Postn_Trol_Register. Initialization value completely arbitrary 
-int Postn_Trol_OverBasket = 0;
+int Postn_Trol_OverBasket = 2;
 int Postn_Trol_OverDryAgent = 1;  // //GOT RID OF int Postn_Trol_TubRimMax = 1; AND CHANGED SUCH THAT FIRST TROL MOVE (in retrieval) IF WET RETRIEVAL ISN'T TO THIS 
-int Postn_Trol_MaxExtnsn = 2;     // TO TEST: You only have 4 white tape pieces on jib now. Determine how many you want.
+int Postn_Trol_MaxExtnsn = 0;     // TO TEST: You only have 4 white tape pieces on jib now. Determine how many you want.
 volatile int Postn_Trol_Register = Postn_Trol_MaxExtnsn;  // MAKE THIS MAX EXTENSION after testing. Values 0 to 4 correspond to trolley position (see Postn_Trol variables). First position: Postn_Trol_AtBoom = 0
 
 
@@ -168,7 +173,7 @@ int Pin_Switch_ClBlk = 3;
 int Mot_ClBlk_Dirctn_Up = 1;
 int Pin_Snsr_ClBlk = 1;                   // Pin on TINAH. As per TINAH log
 int Pin_Mot_ClBlk = 3;                    // Pin on TINAH. As per TINAH log
-int Mot_ClBlk_Speed = 170;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
+int Mot_ClBlk_Speed = 195;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
 int ClbBlkDwdSpeedDivider = 2;          // TO TEST: Best value. Denominator of motor speed when ClBlk goes downward
 int Mot_ClBlk_Dirctn = 1;                 // Initialization value completely arbitrary 
 int Postn_ClBlk_Destntn = 2;              // Values correspond to those of Postn_ClBlk_Register ARBITRARY DYNAMIC INITIALIZATION VALUE 
@@ -211,12 +216,14 @@ int Mot_Crane_Dirctn = 0;               // ARBITRARY, Direction to go in;
 int Postn_Crane_Destntn = 0;            // Values correspond to those of Postn_Crane_Register ARBITRARY DYNAMIC INITIALIZATION VALUE 
 int Postn_Crane_AngleBot = 90;
 int Postn_Crane_AngleTubLineStd;   // Arbitrary initialization value   
-    int Postn_Crane_AngleTubLineStd_R = 30;   //TO DO: ASCERTAIN THIS VALUE IS CORRECT
-    int Postn_Crane_AngleTubLineStd_L = 150;  //TO DO: ASCERTAIN THIS VALUE IS CORRECT
+    int Postn_Crane_AngleTubLineStd_RSurf = 150;   //TO DO: ASCERTAIN THIS VALUE IS CORRECT
+    int Postn_Crane_AngleTubLineStd_LSurf = 30;  //TO DO: ASCERTAIN THIS VALUE IS CORRECT
 int Postn_Crane_Register = Postn_Crane_AngleBot;  // Values 0 to 2 correspond to the 3 position variables (0,70,90). User must choose initialization value. (First position: ClawOpen)
 int Postn_Crane_FarTurn;
     int Postn_Crane_FarRight = 178; 
     int Postn_Crane_FarLeft = 28;
+
+//not using next four lines?
 int Postn_Crane_IRMakeWay = 80;        // Arbitrary initialization value 
     int Postn_Crane_IRMakeWay_R = 80;  //TO DO: ASCERTAIN THIS VALUE IS CORRECT
     int Postn_Crane_IRMakeWay_L = 100; //TO DO: ASCERTAIN THIS VALUE IS 
@@ -294,7 +301,7 @@ void loop()
       LCD.print("L");
     }
     if(Surface_Register == Surface_GoRightSurf) {
-    LCD.print("L");
+    LCD.print("R");
     }    
   }                           
                             
@@ -302,53 +309,73 @@ void loop()
   selectSurface(Surface_Register);
 
 
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+                      /*
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. MUST COMMENT OUT DEFINITELY
 
 //while(1 != 0 ){
 //
 //  double testratio = 3.0/1023.0;
-//  double knob7value; 
+//  double speedratio = 254.0/1023.0;
+//  double knob7value;
+//  double knob6value; 
+//  
 //  while (!startbutton()) {
-//    knob7value = (knob(7)*testratio);
+//    knob6value = knob(6)*speedratio;
+//    Mot_ClBlk_Speed = (int) knob6value;
 //    LCD.clear();
 //    LCD.home();
-//    LCD.print("SetVal CBd: ");
-//    LCD.print((int) knob7value);
+//    LCD.print("Speed: ");
+//    LCD.print(Mot_ClBlk_Speed);
+//    knob7value = (knob(7)*testratio);
 //    LCD.setCursor(0,1);
-//    LCD.print("CBreg: ");
+//    LCD.print("CBdes:");
+//    LCD.print((int) knob7value);
+//    LCD.print(" CBreg:");
 //    LCD.print(Postn_ClBlk_Register);
 //  }
-//
 //  setClawBlockVerticalPosition((int) knob7value);
 //  delay(1000);
 //}
 
 
-while(1 != 0 ){
+//while(1 != 0 ){
+//
+//  double testratio = 2.0/1023.0;
+//  double speedratio = 254.0/1023.0;
+//  double knob7value;
+//  double knob6value; 
+//  
+//  while (!startbutton()) {
+//    knob6value = knob(6)*speedratio;
+//    Mot_Trol_Speed = (int) knob6value;
+//    LCD.clear();
+//    LCD.home();
+//    LCD.print("Speed: ");
+//    LCD.print(Mot_Trol_Speed);
+//    LCD.setCursor(0,1);
+//    knob7value = (knob(7)*testratio);
+//    LCD.print("TRdes:");
+//    LCD.print((int) knob7value);
+//    LCD.print(" TRreg:");
+//    LCD.print(Postn_Trol_Register);
+//  }
+//  setTrolleyHorizontalPosition((int) knob7value);
+//  delay(1000);
+//}
 
-  double testratio = 2.0/1023.0;
-  double knob7value; 
-  while (!startbutton()) {
-    knob7value = (knob(7)*testratio);
-    LCD.clear();
-    LCD.home();
-    LCD.print("SetVal TRd: ");
-    LCD.print((int) knob7value);
-    LCD.setCursor(0,1);
-    LCD.print("TRreg: ");
-    LCD.print(Postn_Trol_Register);
-  }
-
-  setTrolleyHorizontalPosition((int) knob7value);
-  delay(1000);
-}
-
-
-  LCD.clear();
-  LCD.home();
-  LCD.print("Done test.");
-  delay(360000);
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+//  RetrievalType = informIfWetOrDryRtrvl();
+//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);
+//  
+//  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);        
+//  setTrolleyHorizontalPosition(Postn_Trol_OverBasket); 
+ 
+  
+//  LCD.clear();
+//  LCD.home();
+//  LCD.print("Done test.");
+//  delay(360000);
+    //=======================================================================TEST CODE ONLY: ENDS HERE. MUST COMMENT OUT DEFINITELY
 
 
 
@@ -504,6 +531,23 @@ while(1 != 0 ){
   }
 
   Mot_Wheels_Speed = Mot_Wheels_Speed_Reset;
+  Mot_Wheels_Speed = Mot_Wheels_Speed/Mot_Wheels_Speed_UpperPltfrmSlowDownFactor;
+
+  unsigned long sensor_read_delay = 800;
+  unsigned long delay_start = millis();
+
+  //drive for a short time before starting to look for circle
+  while (millis() - delay_start > sensor_read_delay){
+    driveWheels();
+  }
+  
+
+            */
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);        
+  setTrolleyHorizontalPosition(Postn_Trol_OverBasket); 
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
   State_Register = State_AprchCircle;
 
@@ -511,15 +555,7 @@ while(1 != 0 ){
   LCD.home();   
   LCD.print("State_AprchCircle");
 
-
-  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
-  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);    
-
-
-  //Bring claw block up and back to not knock agents over
-  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);        
-  setTrolleyHorizontalPosition(Postn_Trol_OverBasket);          
-
+                                                       
 
   //=======================================================================State_AprchCircle
     
@@ -528,54 +564,66 @@ while(1 != 0 ){
   // Snsr_Drive_FrontInL & Snsr_Drive_FrontInR see black again (i.e. are on the circle again). Then proceed to next state.
   // Delay is to ensure doesn't immediately scan for black tape, because will see immediately. 
   //
-
   Mot_Wheels_Speed = Mot_Wheels_Speed/Mot_Wheels_Speed_UpperPltfrmSlowDownFactor;
+
+
+  //These next 4 lines of code bring claw block up and back to not knock agents over
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);    
+  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);        
+  setTrolleyHorizontalPosition(Postn_Trol_OverBasket); 
+
 
   while(State_Register == State_AprchCircle){ 
     driveWheels();
     LCD.setCursor(0,1);
     LCD.print(Mot_Wheels_Speed);
 
-    if(digitalRead(Pin_Snsr_Chassis_Corner_ApprchCircle)){      // Symmetrical (re: other surface)     //PRE CHANGE CONDITION: "if(analogRead(Pin_Snsr_Chassis_Corner_ApprchCircle) > ANALOGTHRESHOLD)", where threshold was 400
+    if(analogRead(Pin_Snsr_Chassis_Corner_ApprchCircle) > ANALOGTHRESHOLD){      // Symmetrical (re: other surface)     //PRE CHANGE CONDITION: "if(analogRead(Pin_Snsr_Chassis_Corner_ApprchCircle) > ANALOGTHRESHOLD)", where threshold was 400
       motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed_Turn_LW);                   // Symmetrical (re: other surface)
       motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed_Turn_RW);                   // Symmetrical (re: other surface)
+      LCD.setCursor(0,1);
+      LCD.print("AutoEntrcTrn");
       delay(Time_TurnB4Sense);                                                      //Delay is to ensure doesn't immediately scan for black tape, because will see immediately. 
 
       while(digitalRead(Pin_Snsr_Chassis_Front_ApprchCircle) == White_Tape){     // Symmetrical (re: other surface)
         LCD.setCursor(0,1);
-        LCD.print("Look 4 Tape");
+        LCD.print("Lkng4CrclLine");
       
         motor.speed(Pin_Mot_Wheels_L, Mot_Wheels_Speed_Turn_LW);                 // Symmetrical (re: other surface)
         motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed_Turn_RW);                 // Symmetrical (re: other surface)
       }
-      
+
       LCD.clear();
       LCD.home();
-      LCD.print("On line again");                                                              
-    }      
+      LCD.print("OnCrclLine");  
+
+      //This line is required to exit parent while loop.
+      State_Register = State_AprchNextLine;
+                          
+    }
   }
 
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("State_AprchNextLine");
+
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-        //
-        // Motor halt and time delay just for testing course beginning-to-entering circle.
-        //
-        
-        motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
-        motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
-         
-        LCD.clear();
-        LCD.home();
-        LCD.setCursor(0,1);
-        LCD.print("IN_CIRCLE");
-        delay(5000);
+//        //
+//        // Motor halt and time delay just for testing course beginning-to-entering circle.
+//        //
+//        
+//        motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+//        motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+//         
+//        LCD.clear();
+//        LCD.home();
+//        LCD.setCursor(0,1);
+//        LCD.print("IN_CIRCLE");
+//        delay(5000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
-      State_Register = State_AprchNextLine;
 
-      LCD.clear();
-      LCD.home();
-      LCD.setCursor(0,1);
-      LCD.print("State_AprchNextLine");
 
 
 
@@ -609,7 +657,7 @@ while(1 != 0 ){
   State_Register = State_AprchNextLine;
 
   LCD.clear();
-  LCD.home();   
+  LCD.home();
   LCD.print("State_AprchNextLine");
 
 
@@ -892,9 +940,8 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.print(Postn_Crane_AngleTubLineStd);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  
-  
-  setCranePosition(Postn_Crane_AngleTubLineStd);   //TO DO: MAKE this valuation SYMMETRICAL
+
+  setCranePosition(Postn_Crane_AngleTubLineStd);            // Symmetrical (re: other surface)
 
 
   if(FXN_RetrievalType == WetRetrieval){
@@ -1041,13 +1088,13 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
   LCD.clear();
   LCD.home();
   LCD.print("ClDestO:");
-  LCD.print(Mot_Claw_Angle_Open);
+  LCD.print(Mot_Claw_Angle_MaxOpen);
   LCD.setCursor(0,1);
   LCD.print("ClRegO:");
   LCD.print(Postn_Claw_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  setClawPosition(Mot_Claw_Angle_Open);
+  setClawPosition(Mot_Claw_Angle_MaxOpen);
 
 
   return;
@@ -1191,7 +1238,7 @@ int informIfWetOrDryRtrvl() {
 //
 
 void  selectSurface(int FXN_Surface_Register) {
-  
+
     if(FXN_Surface_Register == Surface_GoRightSurf) {
       Mot_Wheels_Speed_Turn_LW = Mot_Speed_Stop;
       Mot_Wheels_Speed_Turn_RW = Mot_Wheels_Speed;
@@ -1199,6 +1246,8 @@ void  selectSurface(int FXN_Surface_Register) {
       Pin_Snsr_Chassis_Front_ApprchCircle = Pin_Snsr_Drive_FrontInL;
       Postn_Crane_FarTurn = Postn_Crane_FarRight;
       Postn_Crane_IRMakeWay = Postn_Crane_IRMakeWay_R;
+      ANALOGTHRESHOLD = ANALOGTHRESHOLD_FarLeftSnsr;
+      Postn_Crane_AngleTubLineStd = Postn_Crane_AngleTubLineStd_RSurf;
     }
 
     if(FXN_Surface_Register == Surface_GoLeftSurf) {
@@ -1208,6 +1257,8 @@ void  selectSurface(int FXN_Surface_Register) {
       Pin_Snsr_Chassis_Front_ApprchCircle = Pin_Snsr_Drive_FrontInR;
       Postn_Crane_FarTurn = Postn_Crane_FarLeft;
       Postn_Crane_IRMakeWay = Postn_Crane_IRMakeWay_L;
+      ANALOGTHRESHOLD = ANALOGTHRESHOLD_FarRightSnsr;
+      Postn_Crane_AngleTubLineStd = Postn_Crane_AngleTubLineStd_LSurf;
     }
 }
 
@@ -1322,15 +1373,15 @@ boolean setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
 
   //Set trolley motor direction according to destination. Return if already at destination 
   if(FXN_Trol_Destntn > Postn_Trol_Register)
-    Mot_Trol_Dirctn = Mot_Trol_Dirctn_Fwrd;
+    Mot_Trol_Dirctn = Mot_Trol_Dirctn_ToTwr;
   else if(FXN_Trol_Destntn < Postn_Trol_Register)
-    Mot_Trol_Dirctn = Mot_Trol_Dirctn_Bkwrd;
+    Mot_Trol_Dirctn = Mot_Trol_Dirctn_ToEnd;
   else if(FXN_Trol_Destntn == Postn_Trol_Register)
     return true;
 
   //Drive motor until destination, checking if sense tape marker
   while(Postn_Trol_Register != FXN_Trol_Destntn) {
-      
+        
     //Check if the function should time out
     if(millis() - call_time > timeout){
       return false;
@@ -1342,12 +1393,13 @@ boolean setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
     else {
       motor.speed(Pin_Mot_Trol, Mot_Trol_Speed*Mot_Trol_Dirctn);
     }
+
     Postn_Trol_PrvsSnsr = Snsr_Trol_Postn;
     Snsr_Trol_Postn = digitalRead(Pin_Snsr_Trol);
 
     //If see tape marker transition (from black to white patch (which is position marker)), increment trolley position register according to motor direction
     if(Postn_Trol_PrvsSnsr != Snsr_Trol_Postn & Postn_Trol_PrvsSnsr == Black_Tape){
-      if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_Fwrd)
+      if(Mot_Trol_Dirctn == Mot_Trol_Dirctn_ToTwr)
         Postn_Trol_Register++;
       else if(Postn_Trol_Register != 1) //position 0 should only be reachable by tripping the switch
         Postn_Trol_Register--;

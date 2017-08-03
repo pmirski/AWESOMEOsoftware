@@ -19,11 +19,12 @@ CAM SAYS: "Agent at position #2 is at LO , robot tried to grab at either Hi or M
 
 
 
-
 Pawel: TESTING IS #1
 IMPLEMENT ERROR HANDLING AFTER TESTING IS SUCCESSFUL
 	Tuesday morning: error handling considerations + general cleanup
-1. Testing 
+1. Testing:
+	a) Grabbing at table
+	b) Grabbing at tub
 2. Change so that tapefollow a little longer, then crane turns
 3. Error handling!!! Consider all possibilities
 4. Test mirrored surface
@@ -31,8 +32,17 @@ IMPLEMENT ERROR HANDLING AFTER TESTING IS SUCCESSFUL
 6. Move edge sensors <---test if can
 7. Change times: wait for Kurt's voltage regulation
 
+Wed:
+IRGate approach timing
+Ferrari mode timing
+Enter circle
+stop+tub
 
-ASK TIME REQUIRED 
+
+TO DO: 
+	1)Didn't read IR signal from some distance; not sure if b/c batteries were low 
+	(Voltages of IR batteries 1-3 runs after noticed this: 7.79, 7.36)
+
 
 
 
