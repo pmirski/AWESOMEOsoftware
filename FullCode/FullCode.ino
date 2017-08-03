@@ -1380,8 +1380,16 @@ boolean setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
   else if(FXN_Trol_Destntn == Postn_Trol_Register)
     return true;
 
+  while(FXN_Trol_Destntn == 0 and digitalRead(Pin_Switch_Trol) != Pin_Switch_Trol_Pressed){
+    if(millis() - call_time > timeout){
+      return false;
+    }
+    motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn_ToEnd)*Trol_Speed_ToEndMultplier);
+  }
+
   //Drive motor until destination, checking if sense tape marker
   while(Postn_Trol_Register != FXN_Trol_Destntn) {
+
         
     //Check if the function should time out
     if(millis() - call_time > timeout){
@@ -1440,7 +1448,7 @@ boolean setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
 
     //Stop motor here, since you've reached destination (condition for exiting above while loop)
   if (Postn_Trol_Register == FXN_Trol_Destntn){
-  motor.speed(Pin_Mot_Trol, Mot_Speed_Stop);
+    motor.speed(Pin_Mot_Trol, Mot_Speed_Stop);
 
   //Required since the speed is changed in one direction
   Mot_Trol_Speed = Mot_Trol_SpeedReset;
