@@ -39,10 +39,11 @@ Enter circle
 stop+tub
 
 
-TO DO: 
-	1)Didn't read IR signal from some distance; not sure if b/c batteries were low 
+Wednesday PROBLEMS: 
+	1) Didn't read IR signal from some distance; not sure if b/c batteries were low 
 	(Voltages of IR batteries 1-3 runs after noticed this: 7.79, 7.36)
-
+	2) After Jake's merge, both go up ramp (goes too far, despite no voltage difference) and appraoch circle (just kept tapefollowing)
+	3) CBlk overshot going down; just lower the speed cuz that should be ok
 
 
 

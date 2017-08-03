@@ -67,7 +67,7 @@ int State_ApprchRamp = 3;
     unsigned long Time_ApprchRamp = 6000;            //
 
 int State_GoUpRamp = 4;   
-    unsigned long Time_GoUpRamp = 2100;              //
+    unsigned long Time_GoUpRamp = 1900;              //
     int Mot_Wheels_Speed_Ramp = Mot_Wheels_Speed*(200.0/110.0);                 //~14.5V: 200
 
 int State_AprchCircle = 5;
@@ -150,7 +150,8 @@ int Pin_Switch_Trol = 2;
   int Pin_Switch_Trol_Pressed = 0;       //0 is hi for limit switches
   int Pin_Switch_Trol_Unpressed = 1;
 int Pin_Mot_Trol = 2;             // Pin on TINAH. As per TINAH log (same as Mot_Pltfrm)
-int Mot_Trol_Speed = 80;          // TO TEST: Value is Mot_Trol_Speed/255 of maximum. User must choose initialization value.
+int Mot_Trol_Speed = 90;          // changed from 80 during testing.  TO TEST: Value is Mot_Trol_Speed/255 of maximum. User must choose initialization value.
+int Mot_Trol_SpeedReset = Mot_Trol_Speed;
 int Trol_Speed_ToEndMultplier = 1;    // TO TEST: Denominator of motor speed when Trol goes backward
 int Mot_Trol_Dirctn = 1;          // Initialization value completely arbitrary 
 int Postn_Trol_Destntn = 3;       // Values meanings correspond to those of Postn_Trol_Register. Initialization value completely arbitrary 
@@ -174,7 +175,8 @@ int Mot_ClBlk_Dirctn_Up = 1;
 int Pin_Snsr_ClBlk = 1;                   // Pin on TINAH. As per TINAH log
 int Pin_Mot_ClBlk = 3;                    // Pin on TINAH. As per TINAH log
 int Mot_ClBlk_Speed = 195;                 // TO TEST: Best value. Value is Mot_ClBlk_Speed/255 of maximum.  User must choose initialization value.
-int ClbBlkDwdSpeedDivider = 2;          // TO TEST: Best value. Denominator of motor speed when ClBlk goes downward
+int Mot_ClBlk_SpeedReset = Mot_ClBlk_Speed;
+int ClbBlkDwdSpeedDivider = 2.5;          // During testing, changed from 2.0 to 2.5. TO TEST: Best value. Denominator of motor speed when ClBlk goes downward
 int Mot_ClBlk_Dirctn = 1;                 // Initialization value completely arbitrary 
 int Postn_ClBlk_Destntn = 2;              // Values correspond to those of Postn_ClBlk_Register ARBITRARY DYNAMIC INITIALIZATION VALUE 
 int Postn_ClBlk_AtJib = 0;
@@ -200,7 +202,7 @@ int Postn_Claw_Destntn = 0;                   // Values 0 to 1 correspond to the
 int Postn_Claw_Register = Postn_Claw_Open;                  // Values 0 to 1 correspond to the 2 position variables. First position: Postn_Claw_Open = 0
 double Snsr_Claw_CnvrsnRatio = (2.0/1023.0);  // ASSUMPTION: have an agent means half open, This is the conversion used to get 0,1 or 2 values for Snsr_Claw_Postn that results in 
 int Mot_Claw_Angle_Close = 0;                 // Done: this value is correct
-int Mot_Claw_Angle_Open = 70;                // Done: this value is correct
+int Mot_Claw_Angle_Open = 90;                // Done: this value is correct
 int Mot_Claw_Angle_MaxOpen = 178;            
 int Pin_Snsr_Claw = 43;                       // Pin on TINAH. As per TINAH log ANALOG
 int Mot_Claw_Dirctn = 0;                      // Initialization value completely arbitrary  
@@ -271,18 +273,18 @@ void loop()
   
   // Push start to continue.
   // User chooses motor speed
-  while (!startbutton()) {
-    LCD.clear();
-    LCD.home();
-    LCD.print("PushStartToCont!");
-
-  Mot_Wheels_Speed = (double) ( (254 / 1023.0)*knob(7));
-  LCD.setCursor(0, 1);
-  LCD.print("Speed:");                                      
-  LCD.print(Mot_Wheels_Speed);
-
-  delay(50);
-  }
+//  while (!startbutton()) {
+//    LCD.clear();
+//    LCD.home();
+//    LCD.print("PushStartToCont!");
+//
+//  Mot_Wheels_Speed = (double) ( (254 / 1023.0)*knob(7));
+//  LCD.setCursor(0, 1);
+//  LCD.print("Speed:");                                      
+//  LCD.print(Mot_Wheels_Speed);
+//
+//  delay(50);
+//  }
 
   delay(1000);  //Need delay so can see next message
 
@@ -309,7 +311,8 @@ void loop()
   selectSurface(Surface_Register);
 
 
-                      /*
+                                    /*
+                      
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. MUST COMMENT OUT DEFINITELY
 
@@ -533,14 +536,13 @@ void loop()
   Mot_Wheels_Speed = Mot_Wheels_Speed_Reset;
   Mot_Wheels_Speed = Mot_Wheels_Speed/Mot_Wheels_Speed_UpperPltfrmSlowDownFactor;
 
-  unsigned long sensor_read_delay = 800;
+  unsigned long sensor_read_delay = 100;
   unsigned long delay_start = millis();
 
   //drive for a short time before starting to look for circle
   while (millis() - delay_start > sensor_read_delay){
     driveWheels();
-  }
-  
+  }           
 
             */
 
@@ -564,7 +566,6 @@ void loop()
   // Snsr_Drive_FrontInL & Snsr_Drive_FrontInR see black again (i.e. are on the circle again). Then proceed to next state.
   // Delay is to ensure doesn't immediately scan for black tape, because will see immediately. 
   //
-  Mot_Wheels_Speed = Mot_Wheels_Speed/Mot_Wheels_Speed_UpperPltfrmSlowDownFactor;
 
 
   //These next 4 lines of code bring claw block up and back to not knock agents over
@@ -1426,9 +1427,24 @@ boolean setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
 
   }
 
+////////////////////////////
+        //PAWEL IS MESSING WITH THIS, AUGUST 2ND, NIGHT. COULD EASILY DELETE
+//    //Stop motor here, since you've reached destination (condition for exiting above while loop)
+//  if( (Postn_Trol_Register == FXN_Trol_Destntn) && (Postn_Trol_Register != Postn_Trol_MaxExtnsn){
+//    motor.speed(Pin_Mot_Trol, Mot_Speed_Stop);
+//  }
+//  if( (Postn_Trol_Register == FXN_Trol_Destntn) && (Postn_Trol_Register == Postn_Trol_MaxExtnsn) && (digitalRead(Pin_Switch_Trol) == Pin_Switch_Trol_Pressed) ){
+//     motor.speed(Pin_Mot_Trol, Mot_Speed_Stop);
+//  }
+///////////////////////////////
+
     //Stop motor here, since you've reached destination (condition for exiting above while loop)
   if (Postn_Trol_Register == FXN_Trol_Destntn){
   motor.speed(Pin_Mot_Trol, Mot_Speed_Stop);
+
+  //Required since the speed is changed in one direction
+  Mot_Trol_Speed = Mot_Trol_SpeedReset;
+  
   return true;
   }
 }
@@ -1509,6 +1525,10 @@ boolean setClawBlockVerticalPosition(int FXN_ClBlk_Destntn) {
   //Stop motor here, since you've reached destination (condition for exiting above while loop)
   if (Postn_ClBlk_Register == FXN_ClBlk_Destntn){
     motor.speed(Pin_Mot_ClBlk, Mot_Speed_Stop);
+
+  //Required since the speed is changed in one direction
+  Mot_ClBlk_Speed = Mot_ClBlk_SpeedReset;
+    
     return true;
   }
 }
