@@ -1380,12 +1380,21 @@ boolean setTrolleyHorizontalPosition(int FXN_Trol_Destntn) {
   else if(FXN_Trol_Destntn == Postn_Trol_Register)
     return true;
 
+
+  //deal with swithcing situation first, and run to switch regardless of current register
   while(FXN_Trol_Destntn == 0 and digitalRead(Pin_Switch_Trol) != Pin_Switch_Trol_Pressed){
     if(millis() - call_time > timeout){
       return false;
     }
     motor.speed(Pin_Mot_Trol, (Mot_Trol_Speed*Mot_Trol_Dirctn_ToEnd)*Trol_Speed_ToEndMultplier);
   }
+
+  if(digitalRead(Pin_Switch_Trol) == Pin_Switch_Trol_Pressed){
+    Postn_Trol_Register = 0;
+    return true;
+  }
+
+  
 
   //Drive motor until destination, checking if sense tape marker
   while(Postn_Trol_Register != FXN_Trol_Destntn) {
