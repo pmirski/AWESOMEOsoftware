@@ -87,7 +87,7 @@ int State_EntrgCircle = 6;
 
 int State_AprchNextLine = 7;
     unsigned long Time_AfterReadLineToStop = 0;           // TO DO:  Change when know if using. COMPLETE GUESS RIGHT NOW!
-    unsigned long Time_AfterReadLineToCallApprchLineFxn = 300;
+    unsigned long Time_AfterReadLineToCallApprchLineFxn = 0;
 
 int State_Retrvl = 8;
     int RetrievalType;
@@ -139,6 +139,12 @@ int Snsr_Drive_FrontOutL = 0;           // Initialization value completely arbit
 int Pin_Snsr_Drive_FrontOutL = 10; 
 int Snsr_Drive_FrontOutR = 0;           // Initialization value completely arbitrary
 int Pin_Snsr_Drive_FrontOutR = 11;
+
+int leftTurnBias  = -15;
+int rightTurnBias =  15;
+int NORMAL = 0;
+int LEFT_CIRCLE_HASH = 1;
+int RIGHT_CIRCLE_HASH = 2;
 
 int count = 0;                          // USED ONLY FOR TESTING driveWheels() to display menu
 
@@ -602,7 +608,7 @@ void loop()
 
 
   while(State_Register == State_AprchCircle){ 
-    driveWheels();
+    driveWheels(NORMAL);
     LCD.setCursor(0,1);
     LCD.print(Mot_Wheels_Speed);
 
@@ -660,7 +666,7 @@ void loop()
 
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead + Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();
@@ -707,7 +713,7 @@ void loop()
   //Tape follow with delay to ensure not read next line while still on previous line
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();
@@ -739,7 +745,7 @@ void loop()
   //Tape follow with delay to ensure not read next line while still on previous line
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();
@@ -771,7 +777,7 @@ void loop()
   //Tape follow with delay to ensure not read next line while still on previous line
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();
@@ -803,7 +809,7 @@ void loop()
   //Tape follow with delay to ensure not read next line while still on previous line
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();
@@ -835,7 +841,7 @@ void loop()
   //Tape follow with delay to ensure not read next line while still on previous line
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();                    
@@ -856,7 +862,7 @@ void loop()
   //Tape follow with delay to ensure not read next line while still on previous line
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();
@@ -890,7 +896,7 @@ void loop()
   //Tape follow with delay to ensure not read next line while still on previous line
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();                   
@@ -905,14 +911,14 @@ void loop()
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
-  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+    motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+    motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
   }
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
 
   Time_WhenTimerWasLastRead = millis();
   while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
-    driveWheels();
+    driveWheels(NORMAL);
   }
 
   doAprchNextLine();                   
@@ -1274,7 +1280,7 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
 //Function drives wheels while tape-tracking.
 //
 
-void driveWheels() {
+void driveWheels(int driveMode) {
 
     //=======================================================================P.I.D. CODE BLOCK
   //Continuous sensor readings
@@ -1302,12 +1308,23 @@ void driveWheels() {
       Drive_Error = 5;    //turn hard left
   }
 
-  //Calculate derivative error correction component
-  Drive_DerivError = Drive_Error - Drive_LastError;
-  
-  //Sum correction components into correction variable
-  Drive_Correction = Drive_Error*KP + Drive_DerivError*KD; //Original "int Drive_Correction = error*kp + Drive_DerivError*kd" , but extracted Extracted "+ intError*ki" and earler declaration " intError += error;"
+  switch(driveMode){
+    //NORMAL drive mode
+    case 0:
+      //Calculate derivative error correction component
+      Drive_DerivError = Drive_Error - Drive_LastError;
+      //Sum correction components into correction variable
+      Drive_Correction = Drive_Error*KP + Drive_DerivError*KD; //Original "int Drive_Correction = error*kp + Drive_DerivError*kd" , but extracted Extracted "+ intError*ki" and earler declaration " intError += error;"
 
+    //LEFT_CIRCLE_HASH drive mode
+    case 1:
+      Drive_Correction = leftTurnBias;
+
+    //RIGHT_CIRCLE_HASH drive mode
+    case 2:
+      Drive_Correction = rightTurnBias;
+  }
+  
   //Add correction to wheel motor speeds
   motor.speed(Pin_Mot_Wheels_L, (Mot_Wheels_Speed - Drive_Correction)*-1);
   motor.speed(Pin_Mot_Wheels_R, Mot_Wheels_Speed + Drive_Correction);
@@ -1359,8 +1376,27 @@ void driveWheels() {
 
 void doAprchNextLine() {
 
+  unsigned long start_time = millis();
+  unsigned long exit_hash_delay = 500;
+  unsigned long realign_delay   = 1000;
+
+  //get off the hash mark you are currently on without following it
+  while(millis() - start_time < exit_hash_delay){
+    if(Surface_Register == Surface_GoLeftSurf){
+      driveWheels(LEFT_CIRCLE_HASH);
+    }else{
+      driveWheels(RIGHT_CIRCLE_HASH);
+    }
+  }
+
+  //realign with the black tape
+  while(millis() - start_time < realign_delay){
+    driveWheels(NORMAL);
+  }  
+
+  //tape follow until next hash
   while(digitalRead(Pin_Snsr_Drive_FrontOutL) == White_Tape || digitalRead(Pin_Snsr_Drive_FrontOutR) == White_Tape){
-    driveWheels();
+    driveWheels(NORMAL);
   } 
 
   delay(Time_AfterReadLineToStop);
