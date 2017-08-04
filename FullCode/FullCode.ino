@@ -73,16 +73,17 @@ int State_GoUpRamp = 4;
     unsigned long Time_DelayStart;
 
 int State_AprchCircle = 5;
-    double Mot_Wheels_Speed_UpperPltfrmSlowDownFactor = 1;        //~14.5V: 1.5               VERY IMPORTANT: THIS IS BY HOW MUCH MOT_DRIVE SPEED SLOWS AFTER RAMP, FOR REMAINDER OF HEAT        
+    double Mot_Wheels_Speed_UpperPltfrmSlowDownFactor = 1;       // The value here for the L-platform by default. It changes in selectSurface() for R-platform to diff value. SEE FUNCTION  
     int Pin_Snsr_Chassis_Corner_ApprchCircle;                    // A variable that may be selected when user chooses surface
     int Pin_Snsr_Chassis_Front_ApprchCircle;                     // A variable that may be selected when user chooses surface
     unsigned long Time_TapeFlw2EnsureOnLine = 1200;              //16.3V:1500, 16.5V:1200 (1500 makes it almost go over)
     int ANALOGTHRESHOLD;
-    int ANALOGTHRESHOLD_FarRightSnsr = 500;                      // Symmetrical (re: other surface)
-    int ANALOGTHRESHOLD_FarLeftSnsr = 800;                       // Symmetrical (re: other surface)
+    int ANALOGTHRESHOLD_FarRightSnsr = 630;                      // Symmetrical (re: other surface)
+    int ANALOGTHRESHOLD_FarLeftSnsr = 780;                       // Symmetrical (re: other surface)
 
 
 int State_EntrgCircle = 6;
+    double Mot_Wheels_Speed_UpperPltfrmADDITIONALSlowDownFactor = 1; // The value here is for the L-platform by default. It changes in selectSurface() for R-platform to diff value. SEE FUNCTION        
 
 int State_AprchNextLine = 7;
     unsigned long Time_AfterReadLineToStop = 0;           // TO DO:  Change when know if using. COMPLETE GUESS RIGHT NOW!
@@ -637,6 +638,9 @@ void loop()
   //
   // Robot follows tape until sensors at tower base sense next line.
   //
+
+  // This speed changes allows for additional slowing down when already in circle, depending on which surface we're on.
+  Mot_Wheels_Speed = Mot_Wheels_Speed_UpperPltfrmADDITIONALSlowDownFactor;
 
   LCD.clear();  
   LCD.home();   
@@ -1399,6 +1403,7 @@ void  selectSurface(int FXN_Surface_Register) {
       ANALOGTHRESHOLD = ANALOGTHRESHOLD_FarLeftSnsr;
       Postn_Crane_AngleTubLineStd = Postn_Crane_AngleTubLineStd_RSurf;
       Mot_Wheels_Speed_UpperPltfrmSlowDownFactor = 1.1;
+      Mot_Wheels_Speed_UpperPltfrmADDITIONALSlowDownFactor = 1.3;
     }
 
     if(FXN_Surface_Register == Surface_GoLeftSurf) {

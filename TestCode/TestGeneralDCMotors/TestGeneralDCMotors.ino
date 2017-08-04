@@ -21,6 +21,23 @@ void setup()
 void loop()
 {
 
+while (!startbutton()) {
+  Speed_Mot_1 = (double) ( (254*2 / 1023.0)*knob(7) - 254 );    //MAX SPEEDS ARE HALVED TO NOT DESTORY MOTORS
+  Speed_Mot_0 = (double) ( (254*2 / 1023.0)*knob(6) - 254 );
+
+  LCD.clear();
+  LCD.home();
+  LCD.setCursor(0, 0);
+  LCD.print("PushTrol:");
+  LCD.print(Speed_Mot_0);
+  LCD.setCursor(0, 1);
+  LCD.print("StrtCB:");
+  LCD.print(Speed_Mot_1);
+  
+  delay(30);
+}
+
+while(1 != 0){
   Speed_Mot_1 = (double) ( (254*2 / 1023.0)*knob(7) - 254 );    //MAX SPEEDS ARE HALVED TO NOT DESTORY MOTORS
   Speed_Mot_0 = (double) ( (254*2 / 1023.0)*knob(6) - 254 );
 
@@ -37,5 +54,6 @@ void loop()
   LCD.print(Speed_Mot_1);
   
   delay(30);
+}
 
 }
