@@ -640,11 +640,15 @@ void loop()
   //
 
   // This speed changes allows for additional slowing down when already in circle, depending on which surface we're on.
-  Mot_Wheels_Speed = Mot_Wheels_Speed_UpperPltfrmADDITIONALSlowDownFactor;
+  Mot_Wheels_Speed = Mot_Wheels_Speed/Mot_Wheels_Speed_UpperPltfrmADDITIONALSlowDownFactor;
 
   LCD.clear();  
   LCD.home();   
   LCD.print("AprchLine 2 2 2");
+  LCD.setCursor(0,1);
+  LCD.print("InCircle: ");
+  LCD.print(Mot_Wheels_Speed);
+
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
   Time_WhenTimerWasLastRead = millis();
@@ -1403,7 +1407,7 @@ void  selectSurface(int FXN_Surface_Register) {
       ANALOGTHRESHOLD = ANALOGTHRESHOLD_FarLeftSnsr;
       Postn_Crane_AngleTubLineStd = Postn_Crane_AngleTubLineStd_RSurf;
       Mot_Wheels_Speed_UpperPltfrmSlowDownFactor = 1.1;
-      Mot_Wheels_Speed_UpperPltfrmADDITIONALSlowDownFactor = 1.3;
+      Mot_Wheels_Speed_UpperPltfrmADDITIONALSlowDownFactor = 1;     //Currently no change (if value is 1)
     }
 
     if(FXN_Surface_Register == Surface_GoLeftSurf) {

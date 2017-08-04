@@ -67,8 +67,6 @@ L = go Left after IR gate)
 
 10) We must be able to ensure height clearance without being on surface (i.e. on test day)
 
-11) ASK ABOUT BUBBLE WRAP SURFACE DIFFERENCE!!!!!! WTF BIG PROBLEM :'(
-
 12) Consider only haveing one white tape piece for hor translation
 
 // Nota bene:
