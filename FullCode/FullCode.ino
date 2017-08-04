@@ -67,11 +67,13 @@ int State_ApprchRamp = 3;
     unsigned long Time_ApprchRamp = 6000;            //
 
 int State_GoUpRamp = 4;   
-    unsigned long Time_GoUpRamp = 1900;              //
+    unsigned long Time_GoUpRamp = 2000;              //
     int Mot_Wheels_Speed_Ramp = Mot_Wheels_Speed*(200.0/110.0);                 //~14.5V: 200
+    unsigned long Time_SensorReadDelay = 500;
+    unsigned long Time_DelayStart;
 
 int State_AprchCircle = 5;
-    int Mot_Wheels_Speed_UpperPltfrmSlowDownFactor = 1.6;        //~14.5V: 1.5               VERY IMPORTANT: THIS IS BY HOW MUCH MOT_DRIVE SPEED SLOWS AFTER RAMP, FOR REMAINDER OF HEAT        
+    double Mot_Wheels_Speed_UpperPltfrmSlowDownFactor = 1;        //~14.5V: 1.5               VERY IMPORTANT: THIS IS BY HOW MUCH MOT_DRIVE SPEED SLOWS AFTER RAMP, FOR REMAINDER OF HEAT        
     int Pin_Snsr_Chassis_Corner_ApprchCircle;                    // A variable that may be selected when user chooses surface
     int Pin_Snsr_Chassis_Front_ApprchCircle;                     // A variable that may be selected when user chooses surface
     unsigned long Time_TapeFlw2EnsureOnLine = 1200;              //16.3V:1500, 16.5V:1200 (1500 makes it almost go over)
@@ -84,6 +86,7 @@ int State_EntrgCircle = 6;
 
 int State_AprchNextLine = 7;
     unsigned long Time_AfterReadLineToStop = 0;           // TO DO:  Change when know if using. COMPLETE GUESS RIGHT NOW!
+    unsigned long Time_AfterReadLineToCallApprchLineFxn = 300;
 
 int State_Retrvl = 8;
     int RetrievalType;
@@ -117,8 +120,8 @@ int State_LowerPltfrm = 12;
 
 //=======================================================================VARIABLES: FOR FUNCTION driveWheels()==========================================
 
-int KD = 20;                            // Drive_Proporttional     16 or 20 was good value during testing
-int KP = 16;                            // Drive_Derivative      16 or 20 was good value during testing
+int KD = 20;                            // Drive_Proporttional. UNTIL THU B4 COMPETITION WEEK, FOR L-SURFACE: 20
+int KP = 16;                            // Drive_Derivative     UNTIL THU B4 COMPETITION WEEK: FOR L-SURFACE:16
 
 int Drive_Correction = 0;               // Initialization value, keep at 0. 
 int Drive_Error = 0;                    // Initialization value, keep at 0.
@@ -201,7 +204,7 @@ int Snsr_Claw_Postn = 0;                      // Analog pot. Initialization valu
 int Postn_Claw_Destntn = 0;                   // Values 0 to 1 correspond to the 2 position variables. Initialization value completely arbitrary 
 int Postn_Claw_Register = Postn_Claw_Open;                  // Values 0 to 1 correspond to the 2 position variables. First position: Postn_Claw_Open = 0
 double Snsr_Claw_CnvrsnRatio = (2.0/1023.0);  // ASSUMPTION: have an agent means half open, This is the conversion used to get 0,1 or 2 values for Snsr_Claw_Postn that results in 
-int Mot_Claw_Angle_Close = 0;                 // Done: this value is correct
+int Mot_Claw_Angle_Close = 12;                 // Done: this value is correct
 int Mot_Claw_Angle_Open = 90;                // Done: this value is correct
 int Mot_Claw_Angle_MaxOpen = 178;            
 int Pin_Snsr_Claw = 43;                       // Pin on TINAH. As per TINAH log ANALOG
@@ -249,12 +252,13 @@ void setup()
   Serial.begin(9600);  
   pinMode(inPin, INPUT);
 
-  RCServo0.write(Postn_Crane_AngleBot);   // crane
-  RCServo1.write(Mot_Claw_Angle_Close);    // agent grabber
-
   RCServo2.detach();
   pinMode(Pin_SwitchMotTrol2Lift, OUTPUT);       // Relay now works (needs to be output)
   digitalWrite(Pin_SwitchMotTrol2Lift, HIGH);    // Set up relay so that trolley is controlled, not platform
+
+  RCServo0.write(Postn_Crane_AngleBot);   // crane
+  RCServo1.write(Mot_Claw_Angle_Close);    // agent grabber
+
 }
 
 
@@ -270,23 +274,31 @@ void setup()
 
 void loop()
 {
-  
-  // Push start to continue.
-  // User chooses motor speed
-//  while (!startbutton()) {
-//    LCD.clear();
-//    LCD.home();
-//    LCD.print("PushStartToCont!");
-//
-//  Mot_Wheels_Speed = (double) ( (254 / 1023.0)*knob(7));
-//  LCD.setCursor(0, 1);
-//  LCD.print("Speed:");                                      
-//  LCD.print(Mot_Wheels_Speed);
-//
-//  delay(50);
-//  }
+
+      //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+//   Push start to continue.
+//   User chooses motor speed
+  while (!startbutton()) {
+    LCD.clear();
+    LCD.home();
+    LCD.print("PushStartToCont!");
+
+  KP = (double) ( (50 / 1023.0)*knob(7));
+  KD = (double) ( (50 / 1023.0)*knob(6));
+  LCD.setCursor(0, 1);
+  LCD.print("KP:");                                      
+  LCD.print(KP);
+  LCD.print(" KD:");                                      
+  LCD.print(KD);
+
+
+  delay(50);
+  }
 
   delay(1000);  //Need delay so can see next message
+
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
 
   // Push start to go!
   // User chooses surace
@@ -294,26 +306,24 @@ void loop()
     LCD.clear();
     LCD.home();
     LCD.print("PushStart2Go!");
-
-    Surface_Register = (double) ( (1/ 1023.0)*knob(7));
     
     LCD.setCursor(0, 1);
     LCD.print("SelctSurf: ");
-    if(Surface_Register == Surface_GoLeftSurf) {
+    if(knob(7) < 500) {
       LCD.print("L");
+      Surface_Register = Surface_GoLeftSurf;
     }
-    if(Surface_Register == Surface_GoRightSurf) {
-    LCD.print("R");
+    else if(knob(7) >= 500) {
+      LCD.print("R");
+      Surface_Register = Surface_GoRightSurf;
     }    
   }                           
-                            
+
 
   selectSurface(Surface_Register);
 
-
-                                    /*
+                /*
                       
-
     //=======================================================================TEST CODE ONLY: STARTS HERE. MUST COMMENT OUT DEFINITELY
 
 //while(1 != 0 ){
@@ -533,24 +543,30 @@ void loop()
     LCD.print(Mot_Wheels_Speed);        
   }
 
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+//  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+//  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+//    LCD.clear();
+//    LCD.home();
+//    LCD.print("StopAfterFerrari");
+//    delay(1000);
+      //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+
   Mot_Wheels_Speed = Mot_Wheels_Speed_Reset;
-  Mot_Wheels_Speed = Mot_Wheels_Speed/Mot_Wheels_Speed_UpperPltfrmSlowDownFactor;
 
-  unsigned long sensor_read_delay = 100;
-  unsigned long delay_start = millis();
-
+  Time_DelayStart = millis();
+  
   //drive for a short time before starting to look for circle
-  while (millis() - delay_start > sensor_read_delay){
+  while ( (millis() < (Time_SensorReadDelay +Time_DelayStart) ){
     driveWheels();
+    LCD.clear();
+    LCD.home();
+    LCD.print("PostRampDelay");
   }           
 
-            */
-
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-  setClawBlockVerticalPosition(Postn_ClBlk_AtJib);        
-  setTrolleyHorizontalPosition(Postn_Trol_OverBasket); 
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-
+  Mot_Wheels_Speed = Mot_Wheels_Speed/Mot_Wheels_Speed_UpperPltfrmSlowDownFactor;
+                                                  
   State_Register = State_AprchCircle;
 
   LCD.clear();
@@ -560,7 +576,6 @@ void loop()
                                                        
 
   //=======================================================================State_AprchCircle
-    
   //
   // Follow tape until Snsr_Drive_FrontOutR senses black tape. When does, pivot on right wheel (driving on left) until 
   // Snsr_Drive_FrontInL & Snsr_Drive_FrontInR see black again (i.e. are on the circle again). Then proceed to next state.
@@ -573,6 +588,16 @@ void loop()
   motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);    
   setClawBlockVerticalPosition(Postn_ClBlk_AtJib);        
   setTrolleyHorizontalPosition(Postn_Trol_OverBasket); 
+                                                                      */
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Mot_Wheels_Speed = (double) Mot_Wheels_Speed/Mot_Wheels_Speed_UpperPltfrmSlowDownFactor;
+    //=======================================================================TEST CODE ONLY: STOP HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  LCD.clear();
+  LCD.home();   
+  LCD.print("State_AprchCircle");
+  State_Register = State_AprchCircle;
 
 
   while(State_Register == State_AprchCircle){ 
@@ -605,35 +630,31 @@ void loop()
     }
   }
 
-  LCD.clear();  
-  LCD.home();   
-  LCD.print("State_AprchNextLine");
-
-    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-//        //
-//        // Motor halt and time delay just for testing course beginning-to-entering circle.
-//        //
-//        
-//        motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
-//        motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
-//         
-//        LCD.clear();
-//        LCD.home();
-//        LCD.setCursor(0,1);
-//        LCD.print("IN_CIRCLE");
-//        delay(5000);
-    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
-
-
 
 
 
   //=======================================================================State_AprchNextLine
-    
   //
   // Robot follows tape until sensors at tower base sense next line.
   //
- 
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("AprchLine 2 2 2");
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead + Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
+
   doAprchNextLine();
 
   State_Register = State_Retrvl;
@@ -653,21 +674,33 @@ void loop()
 
   //============================================At Line 2
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);
+//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);               // MUST DO: THURSDAY: COMMENT BACK IN
   
   State_Register = State_AprchNextLine;
 
-  LCD.clear();
-  LCD.home();
-  LCD.print("State_AprchNextLine");
-
-
   //=======================================================================State_Retrvl, State_AprchNextLine, State_Retrvl, State_AprchNextLine, etc. ...
-
   //
   // From here, we move to Line3 thru Line6, doing low(3), high(4), medium(5), low(6),  code skips over entrance, 
   // and do wet retrieval and high(1) at Line1.
   //
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("AprchLine 3 3 3");
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  //Tape follow with delay to ensure not read next line while still on previous line
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
 
   doAprchNextLine();
 
@@ -679,13 +712,27 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh, Postn_Trol_MaxExtnsn);          //TO DO: CHANGED TO HIGH/ENSURE THIS IS GOOD
+//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh, Postn_Trol_MaxExtnsn);               // MUST DO: THURSDAY: COMMENT BACK IN
   
   State_Register = State_AprchNextLine;
 
   LCD.clear();  
   LCD.home();   
-  LCD.print("State_AprchNextLine");
+  LCD.print("AprchLine 4 4 4");
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  //Tape follow with delay to ensure not read next line while still on previous line
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
 
   doAprchNextLine();
 
@@ -697,13 +744,27 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium, Postn_Trol_MaxExtnsn);
+//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium, Postn_Trol_MaxExtnsn);               // MUST DO: THURSDAY: COMMENT BACK IN
   
   State_Register = State_AprchNextLine;
 
   LCD.clear();  
   LCD.home();   
-  LCD.print("State_AprchNextLine");
+  LCD.print("AprchLine 5 5 5");
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  //Tape follow with delay to ensure not read next line while still on previous line
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
 
   doAprchNextLine();
 
@@ -715,13 +776,27 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);
+//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentLow, Postn_Trol_MaxExtnsn);               // MUST DO: THURSDAY: COMMENT BACK IN
   
   State_Register = State_AprchNextLine;
 
   LCD.clear();  
   LCD.home();   
-  LCD.print("State_AprchNextLine");
+  LCD.print("AprchLine 6 6 6");
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  //Tape follow with delay to ensure not read next line while still on previous line
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
 
   doAprchNextLine();
 
@@ -733,19 +808,51 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh, Postn_Trol_MaxExtnsn);
+//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentHigh, Postn_Trol_MaxExtnsn);               // MUST DO: THURSDAY: COMMENT BACK IN
   
   State_Register = State_AprchNextLine;
-  
+
   LCD.clear();  
   LCD.home();   
-  LCD.print("State_AprchNextLine");
+  LCD.print("Aprch ENTRNC");
 
-  doAprchNextLine();                    // TO DO: ensure that this gets you to Line1, from where you wanna take off
-  //============================================At Entrance (or Line1)
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  //Tape follow with delay to ensure not read next line while still on previous line
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
+
+  doAprchNextLine();                    
+  //============================================At Entrance
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("AprchLine 1 1 1");
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  //Tape follow with delay to ensure not read next line while still on previous line
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
 
   doAprchNextLine();
-  //============================================At Line1 (or Line2)
+  //============================================At Line1
   //Assume it gets you to Line1
   //Do retrieval at Line1
   State_Register = State_Retrvl;
@@ -755,16 +862,50 @@ void loop()
   LCD.print("State_Retrvl");
 
   RetrievalType = informIfWetOrDryRtrvl();
-  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium, Postn_Trol_MaxExtnsn);
+//  doAgentRtrvl(RetrievalType, Postn_ClBlk_AtDryAgentMedium, Postn_Trol_MaxExtnsn);               // MUST DO: THURSDAY: COMMENT BACK IN
   
   State_Register = State_AprchNextLine;
 
   LCD.clear();  
   LCD.home();   
-  LCD.print("State_AprchNextLine");
+  LCD.print("AprchLine 2 2 2");
+
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  //Tape follow with delay to ensure not read next line while still on previous line
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
 
   doAprchNextLine();                   
-  //============================================At Line2 (or Line3)
+  //============================================At Line2
+
+  LCD.clear();  
+  LCD.home();   
+  LCD.print("AprchLine 3 3 3");
+
+  //Tape follow with delay to ensure not read next line while still on previous line
+
+    //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+  motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
+  motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
+  }
+    //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
+  Time_WhenTimerWasLastRead = millis();
+  while( millis() < (Time_WhenTimerWasLastRead +   Time_AfterReadLineToCallApprchLineFxn) ){  
+    driveWheels();
+  }
 
   doAprchNextLine();                   
   //============================================At Line3 (or Line4)
@@ -777,6 +918,8 @@ void loop()
 
 
   //=======================================================================State_TurnToRaise
+
+  Mot_Wheels_Speed = Mot_Wheels_Speed_Reset;
 
   motor.speed(Pin_Mot_Wheels_L, Mot_Speed_Stop);
   motor.speed(Pin_Mot_Wheels_R, Mot_Speed_Stop);
@@ -987,12 +1130,18 @@ void doAgentRtrvl(int FXN_RetrievalType, int FXN_ClBlk_Destntn, int FXN_Postn_Tr
 
 
     //=======================================================================TEST CODE ONLY: STARTS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK
+
   LCD.clear();
   LCD.home();
-  LCD.print("TrolDestO:");
-  LCD.print(Postn_Trol_OverDryAgent);  
-  LCD.print("TrolRegO:");
-  LCD.print(Postn_Trol_Register);
+  LCD.print("Retrval Postn");
+  delay(5000);
+
+//  LCD.clear();
+//  LCD.home();
+//  LCD.print("TrolDestO:");
+//  LCD.print(Postn_Trol_OverDryAgent);  
+//  LCD.print("TrolRegO:");
+//  LCD.print(Postn_Trol_Register);
 //  delay(2000);
     //=======================================================================TEST CODE ONLY: ENDS HERE. CAN COMMENT OUT (or delete) ALL THIS BLOCK 
 
@@ -1241,7 +1390,7 @@ int informIfWetOrDryRtrvl() {
 void  selectSurface(int FXN_Surface_Register) {
 
     if(FXN_Surface_Register == Surface_GoRightSurf) {
-      Mot_Wheels_Speed_Turn_LW = Mot_Speed_Stop;
+      Mot_Wheels_Speed_Turn_LW = Mot_Wheels_Speed/2;                 //TO DO: Ensure I was correct to change from Mot_Speed_Stop
       Mot_Wheels_Speed_Turn_RW = Mot_Wheels_Speed;
       Pin_Snsr_Chassis_Corner_ApprchCircle = Pin_Snsr_Chassis_FrontCrnrL;
       Pin_Snsr_Chassis_Front_ApprchCircle = Pin_Snsr_Drive_FrontInL;
@@ -1249,11 +1398,12 @@ void  selectSurface(int FXN_Surface_Register) {
       Postn_Crane_IRMakeWay = Postn_Crane_IRMakeWay_R;
       ANALOGTHRESHOLD = ANALOGTHRESHOLD_FarLeftSnsr;
       Postn_Crane_AngleTubLineStd = Postn_Crane_AngleTubLineStd_RSurf;
+      Mot_Wheels_Speed_UpperPltfrmSlowDownFactor = 1.1;
     }
 
     if(FXN_Surface_Register == Surface_GoLeftSurf) {
       Mot_Wheels_Speed_Turn_LW = Mot_Wheels_Speed*(-1);
-      Mot_Wheels_Speed_Turn_RW = Mot_Speed_Stop;
+      Mot_Wheels_Speed_Turn_RW = -Mot_Wheels_Speed/2;                        //TO DO: Ensure I was correct to change from Mot_Speed_Stop
       Pin_Snsr_Chassis_Corner_ApprchCircle = Pin_Snsr_Chassis_FrontCrnrR;
       Pin_Snsr_Chassis_Front_ApprchCircle = Pin_Snsr_Drive_FrontInR;
       Postn_Crane_FarTurn = Postn_Crane_FarLeft;
@@ -1262,7 +1412,6 @@ void  selectSurface(int FXN_Surface_Register) {
       Postn_Crane_AngleTubLineStd = Postn_Crane_AngleTubLineStd_LSurf;
     }
 }
-
 
 
 

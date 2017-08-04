@@ -32,21 +32,44 @@ IMPLEMENT ERROR HANDLING AFTER TESTING IS SUCCESSFUL
 6. Move edge sensors <---test if can
 7. Change times: wait for Kurt's voltage regulation
 
-Wed:
-IRGate approach timing
-Ferrari mode timing
-Enter circle
-stop+tub
-
 
 Wednesday PROBLEMS: 
 	1) Didn't read IR signal from some distance; not sure if b/c batteries were low 
 	(Voltages of IR batteries 1-3 runs after noticed this: 7.79, 7.36)
 	2) After Jake's merge, both go up ramp (goes too far, despite no voltage difference) and appraoch circle (just kept tapefollowing)
-	3) CBlk overshot going down; just lower the speed cuz that should be ok
+	3) ATTEMPTED: CBlk overshot going down; just lower the speed cuz that should be ok
+	4) Trolley: If wanna go to trolley and register says =0 even before function is called, ensure that the switch must still be hit to get at 0.
 
 
 
+
+Thu morning THINGS TO ADDRESS:
+
+1) Continue with yesterday's testing, moving on to leaving the circle and ziplining, and eventually doing full run, start to finish.
+	
+2) Test code for other surface (just select R for other surface when upload FullCode.ino and start up.robot (asks u to select))
+(R = go Right after IR gate
+L = go Left after IR gate)
+	
+3) Test IR capabilities *with fully-charged IR batteries*
+	
+4) Ensure can both, in series, go up ramp and enter circle w most recent code. (Can compare with code pushed yesterday labeled something like "before merge w Jake's code")
+	
+5) Attempt water retrieval
+	
+6) Fix cable routing in front that has been effed with
+	
+7) Add maybe-seran-wrappy "splash guard" onto back of basket re: bunch of wet agents tumbling in, near circuitry&wires
+	
+8) Detecting IR gate arrival would be greaaaaaaaat
+	
+9) Ensure we can quickly adjust jib height
+
+10) We must be able to ensure height clearance without being on surface (i.e. on test day)
+
+11) ASK ABOUT BUBBLE WRAP SURFACE DIFFERENCE!!!!!! WTF BIG PROBLEM :'(
+
+12) Consider only haveing one white tape piece for hor translation
 
 // Nota bene:
 //    0. All code in one file because remains ready for one-big-case conversion

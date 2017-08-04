@@ -21,12 +21,12 @@ void loop()
 {
   LCD.clear();  
   LCD.home();
+  LCD.print(" OL");
+  LCD.print(digitalRead(10));
   LCD.print("IL");
   LCD.print(digitalRead(8));
   LCD.print(" IR");
   LCD.print(digitalRead(9));
-  LCD.print(" OL");
-  LCD.print(digitalRead(10));
   LCD.print(" OR");
   LCD.print(digitalRead(11));
 
