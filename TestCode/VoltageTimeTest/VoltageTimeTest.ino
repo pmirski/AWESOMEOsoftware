@@ -1,21 +1,18 @@
 #include <phys253.h>          
 #include <LiquidCrystal.h>
 
-int Drive_Error;
-int Drive_LastError;
-double Drive_DerivError;
-double Drive_Correction;
+int Drive_Error = 0;
+int Drive_LastError = 0;
+double Drive_DerivError = 0;
+double Drive_Correction = 0;
 
-int Mot_Wheels_Speed = 110;
+int Mot_Wheels_Speed = 150;
 
 int KP = 20;
 int KD = 20;
 
 int leftTurnBias = 0;
 int rightTurnBias = 0;
-
-int Postn_Drive_Snsr_leftLast;
-int Postn_Drive_Snsr_rightLast;
 
 int Black_Tape = 1;
 int White_Tape = 0;
@@ -24,13 +21,16 @@ int Pin_Mot_Wheels_L = 0;
 int Pin_Mot_Wheels_R = 1;
 
 int Pin_Snsr_Battery_Voltage = 5;
+int Snsr_Drive_FrontInL = 0;            // Initialization value completely arbitrary 
 int Pin_Snsr_Drive_FrontInL = 8;
+boolean Postn_Drive_Snsr_leftLast;      // Used to record last sensor value.
+int Snsr_Drive_FrontInR = 0;            // Initialization value completely arbitrary 
 int Pin_Snsr_Drive_FrontInR = 9;
-int Pin_Snsr_Drive_FrontOutL = 10;
+boolean Postn_Drive_Snsr_rightLast;     // Used to record last sensor value.
+int Snsr_Drive_FrontOutL = 0;           // Initialization value completely arbitrary 
+int Pin_Snsr_Drive_FrontOutL = 10; 
+int Snsr_Drive_FrontOutR = 0;           // Initialization value completely arbitrary
 int Pin_Snsr_Drive_FrontOutR = 11;
-
-int Snsr_Drive_FrontInL;
-int Snsr_Drive_FrontInR;
 
 unsigned long start_time;
 unsigned long runtime;
@@ -45,7 +45,7 @@ boolean record_flag = false;
 void setup() {
   #include <phys253setup.txt>
   RCServo0.write(90);   // crane
-  RCServo1.write(90);
+  RCServo1.write(90);   // claw
 
   while(!startbutton()){
     
@@ -72,6 +72,7 @@ void loop() {
     LCD.setCursor(0,1);
     LCD.print("Time: ");
     LCD.print(runtime);
+    delay(30000);
     
   }else{
     if(!record_flag){
@@ -119,14 +120,16 @@ void driveWheels(int driveMode) {
       Drive_DerivError = Drive_Error - Drive_LastError;
       //Sum correction components into correction variable
       Drive_Correction = Drive_Error*KP + Drive_DerivError*KD; //Original "int Drive_Correction = error*kp + Drive_DerivError*kd" , but extracted Extracted "+ intError*ki" and earler declaration " intError += error;"
-
+      break;
     //LEFT_CIRCLE_HASH drive mode
     case 1:
       Drive_Correction = leftTurnBias;
+      break;
 
     //RIGHT_CIRCLE_HASH drive mode
     case 2:
       Drive_Correction = rightTurnBias;
+      break;
   }
   
   //Add correction to wheel motor speeds
